@@ -9,6 +9,16 @@ debian/files
 debian/*.substvars
 debian/libpycool*/
 debian/pycool*/
+*.deb
+*.ddeb
+*.buildinfo
+*.changes
+debian/.debhelper/
+debian/debhelper-build-stamp
+debian/files
+debian/*.substvars
+debian/libpycool*/
+debian/pycool*/
 bin.rootowned*/
 pycool
 test_ast

@@ -131,7 +131,7 @@ install: all
 	ln -sf libpycool.so.0 $(DESTDIR)$(LIBDIR)/libpycool.so
 	install -m 0644 src/pycool.h $(DESTDIR)$(INCLUDEDIR)/pycool/pycool.h
 	install -m 0644 http/http.h $(DESTDIR)$(INCLUDEDIR)/pycool/http.h
-	@if [ -z "$(DESTDIR)" ]; then ldconfig; fi
+	@if [ -z "$(DESTDIR)" ]; then ldconfig || true; fi
 
 .PHONY: all clean release install
 all: libpycool.a pycool bin/pycoolctl pycoolmcp

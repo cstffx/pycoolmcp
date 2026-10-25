@@ -13,7 +13,7 @@ LIB_SRCS := $(SRC)/ast.c $(SRC)/traverse.c $(SRC)/extract.c $(SRC)/scan.c \
             $(SRC)/ignore.c $(SRC)/observer.c $(SRC)/registry.c $(SRC)/pycool.c \
             $(SRC)/dbpath.c \
             $(SRC)/query_class.c $(SRC)/query_method.c $(SRC)/query_list.c $(SRC)/query_info.c \
-            $(SRC)/query_reindex.c \
+            $(SRC)/query_reindex.c $(SRC)/query_search.c \
             $(INDEX)/core.c $(INDEX)/class.c $(INDEX)/method.c
 
 LIB_OBJS := $(LIB_SRCS:.c=.o)
@@ -92,7 +92,7 @@ pycool: $(SRC)/pycool_main.c libpycool.a
 	$(CC) $(CFLAGS) -o $@ $(SRC)/pycool_main.c libpycool.a $(LDFLAGS)
 
 # --- pycoolctl cli ---
-PYCOOLCTL_SRCS := $(CLI)/main.c $(SRC)/query_list.c $(SRC)/query_info.c $(SRC)/query_class.c $(SRC)/query_method.c \
+PYCOOLCTL_SRCS := $(CLI)/main.c $(SRC)/query_list.c $(SRC)/query_info.c $(SRC)/query_class.c $(SRC)/query_method.c $(SRC)/query_search.c \
                   $(CLI)/stop.c $(CLI)/clean.c $(SRC)/query_reindex.c
 
 bin/pycoolctl: $(PYCOOLCTL_SRCS) libpycool.a
@@ -118,8 +118,17 @@ test_traverse: $(TESTS)/test_traverse.c $(SRC)/ast.o $(SRC)/traverse.o
 test_index: $(TESTS)/test_index.c $(INDEX)/core.o
 	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_index.c $(INDEX)/core.o -lsqlite3
 
+test_overlap: $(TESTS)/test_overlap.c $(SRC)/registry.o
+	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_overlap.c $(SRC)/registry.o $(LDFLAGS)
+
+test_ignore: $(TESTS)/test_ignore.c $(SRC)/ignore.o
+	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_ignore.c $(SRC)/ignore.o $(LDFLAGS)
+
+test_incremental: $(TESTS)/test_incremental.c libpycool.a
+	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_incremental.c libpycool.a $(LDFLAGS) -lpthread -ldl -lutil -lm
+
 clean:
-	rm -f *.o *.a *.so *.so.* test_ast test_traverse test_index pycool http_server pycoolmcp
+	rm -f *.o *.a *.so *.so.* test_ast test_traverse test_index test_overlap test_ignore test_incremental pycool http_server pycoolmcp
 	rm -rf bin $(SRC)/*.o $(INDEX)/*.o
 
 release:

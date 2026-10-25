@@ -20,6 +20,9 @@ LIB_OBJS := $(LIB_SRCS:.c=.o)
 .PHONY: all
 all: libpycool.a libpycool.so pycool bin/pycoolctl http_server pycoolmcp
 
+lint:
+	clang-tidy src/*.c index/*.c mcp/*.c http/*.c pycoolctl/*.c -- $(CFLAGS) 2>&1 | tee lint.txt
+
 # --- library ---
 libpycool.a: $(LIB_OBJS)
 	ar rcs $@ $(LIB_OBJS)

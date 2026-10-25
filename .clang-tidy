@@ -1,0 +1,6 @@
+Checks: >
+  -*,bugprone-*,cert-*,clang-analyzer-*,misc-*,performance-*,
+  -misc-unused-parameters
+WarningsAsErrors: ''
+HeaderFilterRegex: '.*'
+FormatStyle: none

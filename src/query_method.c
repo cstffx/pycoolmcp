@@ -6,24 +6,24 @@
 #include <string.h>
 #include <sqlite3.h>
 
-static void print_json_str(const char *s)
+static void print_json_str(FILE *out, const char *s)
 {
-	putchar('"');
+	fputc('"', out);
 	if (s) {
 		for (const unsigned char *p = (const unsigned char *)s; *p; p++) {
 			switch (*p) {
-				case '"': fputs("\\\"", stdout); break;
-				case '\\': fputs("\\\\", stdout); break;
-				case '\n': fputs("\\n", stdout); break;
-				case '\r': fputs("\\r", stdout); break;
-				case '\t': fputs("\\t", stdout); break;
+				case '"': fputs("\\\"", out); break;
+				case '\\': fputs("\\\\", out); break;
+				case '\n': fputs("\\n", out); break;
+				case '\r': fputs("\\r", out); break;
+				case '\t': fputs("\\t", out); break;
 				default:
-					if (*p < 0x20) printf("\\u%04x", *p);
-					else putchar(*p);
+					if (*p < 0x20) fprintf(out, "\\u%04x", *p);
+					else fputc(*p, out);
 			}
 		}
 	}
-	putchar('"');
+	fputc('"', out);
 }
 
 static char *build_params(sqlite3 *db, sqlite3_int64 method_id)
@@ -72,7 +72,7 @@ static char *build_params(sqlite3 *db, sqlite3_int64 method_id)
 	return buf;
 }
 
-static void print_class_body(const char *path, long start, long end)
+static void print_class_body(FILE *out, const char *path, long start, long end)
 {
 	if (!path || start <= 0) return;
 	if (end < start) end = start;
@@ -84,14 +84,14 @@ static void print_class_body(const char *path, long start, long end)
 	long cur = 0;
 	while ((len = getline(&line, &cap, f)) != -1) {
 		cur++;
-		if (cur >= start && cur <= end) fputs(line, stdout);
+		if (cur >= start && cur <= end) fputs(line, out);
 		if (cur >= end) break;
 	}
 	free(line);
 	fclose(f);
 }
 
-int method_command(int argc, char **argv)
+int method_command(int argc, char **argv, FILE *out)
 {
 	const char *class_name = NULL;
 	const char *method_name = NULL;
@@ -189,7 +189,7 @@ int method_command(int argc, char **argv)
 	if (method_name) sqlite3_bind_text(stmt, bi++, method_name, -1, SQLITE_TRANSIENT);
 	if (file) sqlite3_bind_text(stmt, bi++, file, -1, SQLITE_TRANSIENT);
 
-	if (json_mode) printf("[\n");
+	if (json_mode) fprintf(out, "[\n");
 	int first = 1;
 	int had = 0;
 	while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -205,38 +205,38 @@ int method_command(int argc, char **argv)
 		char *params = build_params(db, mid);
 		if (body_mode) {
 			if (mend <= 0) mend = mline;
-			print_class_body(mpath, mline, mend);
+			print_class_body(out, mpath, mline, mend);
 			free(params);
 			continue;
 		}
 		if (json_mode) {
-			if (!first) printf(",\n");
+			if (!first) fprintf(out, ",\n");
 			first = 0;
-			printf("  {\"class\":");
-			print_json_str(class_name);
-			printf(",\"method\":");
-			print_json_str(mname);
-			printf(",\"file\":");
-			print_json_str(mpath);
-			printf(",\"line\":%ld,\"end_line\":%ld", mline, mend);
-			printf(",\"decorators\":");
-			print_json_str(mdecs);
-			printf(",\"returns\":");
-			print_json_str(mret);
-			printf(",\"docstring\":");
-			print_json_str(mdoc);
-			printf(",\"params\":\"%s\"}", params ? params : "");
+			fprintf(out, "  {\"class\":");
+			print_json_str(out, class_name);
+			fprintf(out, ",\"method\":");
+			print_json_str(out, mname);
+			fprintf(out, ",\"file\":");
+			print_json_str(out, mpath);
+			fprintf(out, ",\"line\":%ld,\"end_line\":%ld", mline, mend);
+			fprintf(out, ",\"decorators\":");
+			print_json_str(out, mdecs);
+			fprintf(out, ",\"returns\":");
+			print_json_str(out, mret);
+			fprintf(out, ",\"docstring\":");
+			print_json_str(out, mdoc);
+			fprintf(out, ",\"params\":\"%s\"}", params ? params : "");
 		} else {
-			printf("%s.%s(%s)", class_name, mname ? mname : "", params ? params : "");
-			if (mret && mret[0]) printf(" -> %s", mret);
-			if (mdecs && mdecs[0]) printf(" %s", mdecs);
-			printf(" %s:%ld-%ld\n", mpath ? mpath : "", mline, mend);
+			fprintf(out, "%s.%s(%s)", class_name, mname ? mname : "", params ? params : "");
+			if (mret && mret[0]) fprintf(out, " -> %s", mret);
+			if (mdecs && mdecs[0]) fprintf(out, " %s", mdecs);
+			fprintf(out, " %s:%ld-%ld\n", mpath ? mpath : "", mline, mend);
 		}
 		free(params);
 	}
 	if (json_mode) {
-		if (had) printf("\n]\n");
-		else printf("[]\n");
+		if (had) fprintf(out, "\n]\n");
+		else fprintf(out, "[]\n");
 	}
 	sqlite3_finalize(stmt);
 	sqlite3_close(db);

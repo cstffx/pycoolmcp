@@ -8,6 +8,10 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <json-c/json.h>
+#include "../pycoolctl/class.h"
+#include "../pycoolctl/method.h"
+#include "../pycoolctl/list.h"
+#include "../pycoolctl/info.h"
 
 #define MAX_OUTPUT 65536
 
@@ -66,40 +70,6 @@ static int get_int(json_object *o, const char *key, int def)
 	if (json_object_object_get_ex(o, key, &v) && json_object_is_type(v, json_type_int))
 		return json_object_get_int(v);
 	return def;
-}
-
-static char *run_pycoolctl(char **argv)
-{
-	int pipefd[2];
-	if (pipe(pipefd) != 0) return strdup("pipe error\n");
-	pid_t pid = fork();
-	if (pid < 0) {
-		close(pipefd[0]); close(pipefd[1]);
-		return strdup("fork error\n");
-	}
-	if (pid == 0) {
-		close(pipefd[0]);
-		dup2(pipefd[1], STDOUT_FILENO);
-		dup2(pipefd[1], STDERR_FILENO);
-		close(pipefd[1]);
-		execv(pycoolctl_path, argv);
-		perror("exec");
-		_exit(127);
-	}
-	close(pipefd[1]);
-	char *buf = malloc(MAX_OUTPUT);
-	if (!buf) { close(pipefd[0]); waitpid(pid, NULL, 0); return strdup("oom\n"); }
-	size_t off = 0;
-	for (;;) {
-		if (off >= MAX_OUTPUT - 1) break;
-		ssize_t r = read(pipefd[0], buf + off, (MAX_OUTPUT - 1) - off);
-		if (r <= 0) break;
-		off += (size_t)r;
-	}
-	buf[off] = '\0';
-	close(pipefd[0]);
-	waitpid(pid, NULL, 0);
-	return buf;
 }
 
 static json_object *tool_result(const char *text, int is_error)
@@ -297,15 +267,22 @@ static void handle_tools_call(json_object *id, json_object *params)
 	}
 	argv[argc] = NULL;
 
-	char *output = run_pycoolctl(argv);
-	int is_error = 0;
-	/* Heuristic: pycoolctl prints usage/errors to stderr (captured) */
-	if (output && (strstr(output, "usage:") || strstr(output, "error:") || strstr(output, "cannot open")))
+	char *buf = NULL;
+	size_t bufsize = 0;
+	FILE *mem = open_memstream(&buf, &bufsize);
+	int rc = 0;
+	if (strcmp(name, "query_class") == 0) rc = class_command(argc, argv, mem);
+	else if (strcmp(name, "query_method") == 0) rc = method_command(argc, argv, mem);
+	else if (strcmp(name, "list_instances") == 0) rc = list_command(argc, argv, mem);
+	else if (strcmp(name, "info") == 0) rc = info_command(argc, argv, mem);
+	fclose(mem);
+
+	int is_error = (rc != 0);
+	if (buf && (strstr(buf, "cannot open") || strstr(buf, "no running instance") || strstr(buf, "not found")))
 		is_error = 1;
-	/* empty successful query yields no output; treat as ok */
-	json_object *result = tool_result(output ? output : "", is_error);
+	json_object *result = tool_result(buf ? buf : "", is_error);
 	send_response(id, result, NULL);
-	free(output);
+	free(buf);
 }
 
 static void handle_request(json_object *req)

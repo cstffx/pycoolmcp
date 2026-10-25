@@ -6,7 +6,7 @@
 #include <string.h>
 #include <sys/stat.h>
 
-int list_command(int argc, char **argv)
+int list_command(int argc, char **argv, FILE *out)
 {
 	int show_size = 0;
 	for (int i = 2; i < argc; i++) {
@@ -14,16 +14,16 @@ int list_command(int argc, char **argv)
 	}
 	char **roots, **dbpaths; pid_t *pids; int n;
 	if (registry_list_paths(&roots, &dbpaths, &pids, &n) != 0) return 1;
-	if (show_size) printf("PID\tROOT\tDB\tDBSIZE\n");
-	else printf("PID\tROOT\tDB\n");
+	if (show_size) fprintf(out, "PID\tROOT\tDB\tDBSIZE\n");
+	else fprintf(out, "PID\tROOT\tDB\n");
 	for (int i = 0; i < n; i++) {
 		if (show_size) {
 			struct stat st;
 			long sz = -1;
 			if (stat(dbpaths[i], &st) == 0) sz = (long)st.st_size;
-			printf("%d\t%s\t%s\t%ld\n", (int)pids[i], roots[i], dbpaths[i], sz);
+			fprintf(out, "%d\t%s\t%s\t%ld\n", (int)pids[i], roots[i], dbpaths[i], sz);
 		} else {
-			printf("%d\t%s\t%s\n", (int)pids[i], roots[i], dbpaths[i]);
+			fprintf(out, "%d\t%s\t%s\n", (int)pids[i], roots[i], dbpaths[i]);
 		}
 	}
 	return 0;

@@ -11,16 +11,20 @@ HTTP := http
 # Library sources (core indexer + SQLite index layer + registry)
 LIB_SRCS := $(SRC)/ast.c $(SRC)/traverse.c $(SRC)/extract.c $(SRC)/scan.c \
             $(SRC)/ignore.c $(SRC)/observer.c $(SRC)/registry.c $(SRC)/pycool.c \
+            $(SRC)/query_class.c $(SRC)/query_method.c $(SRC)/query_list.c $(SRC)/query_info.c \
             $(INDEX)/core.c $(INDEX)/class.c $(INDEX)/method.c
 
 LIB_OBJS := $(LIB_SRCS:.c=.o)
 
 .PHONY: all
-all: libpycool.a pycool bin/pycoolctl http_server pycoolmcp
+all: libpycool.a libpycool.so pycool bin/pycoolctl http_server pycoolmcp
 
 # --- library ---
 libpycool.a: $(LIB_OBJS)
 	ar rcs $@ $(LIB_OBJS)
+
+libpycool.so: $(LIB_SRCS)
+	$(CC) -shared -fPIC $(CFLAGS) -o $@ $(LIB_SRCS) $(LDFLAGS)
 
 # object rules
 $(SRC)/ast.o: $(SRC)/ast.c $(SRC)/ast.h
@@ -47,6 +51,18 @@ $(SRC)/registry.o: $(SRC)/registry.c $(SRC)/registry.h
 $(SRC)/pycool.o: $(SRC)/pycool.c $(SRC)/pycool.h
 	$(CC) $(CFLAGS) -c $(SRC)/pycool.c -o $(SRC)/pycool.o
 
+$(SRC)/query_class.o: $(SRC)/query_class.c pycoolctl/class.h
+	$(CC) $(CFLAGS) -c $(SRC)/query_class.c -o $(SRC)/query_class.o
+
+$(SRC)/query_method.o: $(SRC)/query_method.c pycoolctl/method.h
+	$(CC) $(CFLAGS) -c $(SRC)/query_method.c -o $(SRC)/query_method.o
+
+$(SRC)/query_list.o: $(SRC)/query_list.c pycoolctl/list.h
+	$(CC) $(CFLAGS) -c $(SRC)/query_list.c -o $(SRC)/query_list.o
+
+$(SRC)/query_info.o: $(SRC)/query_info.c pycoolctl/info.h
+	$(CC) $(CFLAGS) -c $(SRC)/query_info.c -o $(SRC)/query_info.o
+
 $(INDEX)/core.o: $(INDEX)/core.c $(INDEX)/core.h $(INDEX)/class.h $(INDEX)/method.h
 	mkdir -p $(INDEX)
 	$(CC) $(CFLAGS) -c $(INDEX)/core.c -o $(INDEX)/core.o
@@ -64,7 +80,7 @@ pycool: $(SRC)/pycool_main.c libpycool.a
 	$(CC) $(CFLAGS) -o $@ $(SRC)/pycool_main.c libpycool.a $(LDFLAGS)
 
 # --- pycoolctl cli ---
-PYCOOLCTL_SRCS := $(CLI)/main.c $(CLI)/list.c $(CLI)/info.c $(CLI)/class.c $(CLI)/method.c \
+PYCOOLCTL_SRCS := $(CLI)/main.c $(SRC)/query_list.c $(SRC)/query_info.c $(SRC)/query_class.c $(SRC)/query_method.c \
                   $(CLI)/stop.c $(CLI)/clean.c $(CLI)/reindex.c
 
 bin/pycoolctl: $(PYCOOLCTL_SRCS) libpycool.a
@@ -77,9 +93,8 @@ http_server: $(HTTP)/http.c mcp/http_app.c
 
 # --- mcp server (stdio, JSON-RPC) ---
 MCP_CFLAGS := $(CFLAGS) $(shell pkg-config --cflags json-c 2>/dev/null)
-MCP_LDFLAGS := -ljson-c
-pycoolmcp: mcp/mcp_server.c
-	$(CC) $(MCP_CFLAGS) -o pycoolmcp mcp/mcp_server.c $(MCP_LDFLAGS)
+pycoolmcp: mcp/mcp_server.c libpycool.so
+	$(CC) $(MCP_CFLAGS) -o pycoolmcp mcp/mcp_server.c -L. -lpycool -ljson-c -lpython3.13 -lsqlite3 -Wl,-rpath,'$$ORIGIN' 
 
 # --- tests ---
 test_ast: $(TESTS)/test_ast.c $(SRC)/ast.o

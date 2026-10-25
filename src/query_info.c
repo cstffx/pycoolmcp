@@ -7,7 +7,7 @@
 #include <sys/stat.h>
 #include <sqlite3.h>
 
-int info_command(int argc, char **argv)
+int info_command(int argc, char **argv, FILE *out)
 {
 	if (argc < 3) {
 		fprintf(stderr, "Usage: %s info <db|pid|all>\n", argv[0]);
@@ -65,12 +65,12 @@ int info_command(int argc, char **argv)
 			sqlite3_finalize(stmt);
 		}
 		sqlite3_close(db);
-		printf("DB: %s\n", dbpath);
-		printf("  size: %ld bytes\n", size);
-		printf("  files: %ld\n", files);
-		printf("  classes: %ld\n", classes);
-		printf("  functions: %ld\n", functions);
-		printf("  variables: %ld\n", variables);
+		fprintf(out, "DB: %s\n", dbpath);
+		fprintf(out, "  size: %ld bytes\n", size);
+		fprintf(out, "  files: %ld\n", files);
+		fprintf(out, "  classes: %ld\n", classes);
+		fprintf(out, "  functions: %ld\n", functions);
+		fprintf(out, "  variables: %ld\n", variables);
 	}
 	return 0;
 }

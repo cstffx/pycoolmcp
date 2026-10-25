@@ -1,6 +1,7 @@
 # Build artifacts
 *.o
 *.a
+*.so
 bin/
 bin.rootowned*/
 pycool

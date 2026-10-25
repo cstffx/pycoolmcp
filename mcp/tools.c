@@ -3,6 +3,7 @@
 #include "index_manager.h"
 #include "../pycoolctl/class.h"
 #include "../pycoolctl/method.h"
+#include "../pycoolctl/search.h"
 #include "../pycoolctl/list.h"
 #include "../pycoolctl/info.h"
 #include "../pycoolctl/reindex.h"
@@ -87,6 +88,9 @@ void handle_tools_list(json_object *id)
 
 	json_object *s2 = schema_obj("{\"type\":\"object\",\"properties\":{\"class\":{\"type\":\"string\"},\"method\":{\"type\":\"string\"},\"db\":{\"type\":\"string\"},\"file\":{\"type\":\"string\"},\"pid\":{\"type\":\"integer\"},\"body\":{\"type\":\"boolean\"},\"json\":{\"type\":\"boolean\"},\"limit\":{\"type\":\"integer\"},\"offset\":{\"type\":\"integer\"}},\"required\":[\"class\"]}");
 	json_object_array_add(tools, make_tool("query_method", "Query methods of a class", s2));
+
+	json_object *s_search = schema_obj("{\"type\":\"object\",\"properties\":{\"query\":{\"type\":\"string\"},\"regex\":{\"type\":\"boolean\"},\"kind\":{\"type\":\"string\"},\"file\":{\"type\":\"string\"},\"db\":{\"type\":\"string\"},\"pid\":{\"type\":\"integer\"},\"limit\":{\"type\":\"integer\"},\"offset\":{\"type\":\"integer\"}},\"required\":[\"query\"]}");
+	json_object_array_add(tools, make_tool("search_symbols", "Search symbols by name/docstring", s_search));
 
 	json_object *s3 = schema_obj("{\"type\":\"object\",\"properties\":{\"dbsize\":{\"type\":\"boolean\"}}}");
 	json_object_array_add(tools, make_tool("list_instances", "List running pycool instances", s3));
@@ -243,6 +247,40 @@ void handle_tools_call(json_object *id, json_object *params)
 			static char obuf[32]; snprintf(obuf, sizeof(obuf), "%d", offset);
 			argv[argc++] = "--offset"; argv[argc++] = obuf;
 		}
+	} else if (strcmp(name, "search_symbols") == 0) {
+		const char *q = get_str(args, "query");
+		if (!q) {
+			json_object *err = json_object_new_object();
+			json_object_object_add(err, "code", json_object_new_int(-32602));
+			json_object_object_add(err, "message", json_object_new_string("missing query"));
+			send_response(id, NULL, err);
+			return;
+		}
+		argv[argc++] = "search";
+		argv[argc++] = (char *)q;
+		if (get_bool(args, "regex", 0)) argv[argc++] = "--regex";
+		const char *kind = get_str(args, "kind");
+		if (kind) { argv[argc++] = "--kind"; argv[argc++] = (char *)kind; }
+		const char *file = get_str(args, "file");
+		if (file) { argv[argc++] = "--file"; argv[argc++] = (char *)file; }
+		const char *db = get_str(args, "db");
+		if (db) { argv[argc++] = "--db"; argv[argc++] = (char *)db; }
+		int pid = get_int(args, "pid", -1);
+		if (pid >= 0) {
+			static char pidbuf[32];
+			snprintf(pidbuf, sizeof(pidbuf), "%d", pid);
+			argv[argc++] = "--pid"; argv[argc++] = pidbuf;
+		}
+		int limit = get_int(args, "limit", 0);
+		if (limit > 0) {
+			static char lbuf[32]; snprintf(lbuf, sizeof(lbuf), "%d", limit);
+			argv[argc++] = "--limit"; argv[argc++] = lbuf;
+		}
+		int offset = get_int(args, "offset", 0);
+		if (offset > 0) {
+			static char obuf[32]; snprintf(obuf, sizeof(obuf), "%d", offset);
+			argv[argc++] = "--offset"; argv[argc++] = obuf;
+		}
 	} else if (strcmp(name, "list_instances") == 0) {
 		argv[argc++] = "list";
 		if (get_bool(args, "dbsize", 0)) argv[argc++] = "--dbsize";
@@ -271,6 +309,7 @@ void handle_tools_call(json_object *id, json_object *params)
 	int rc = 0;
 	if (strcmp(name, "query_class") == 0) rc = class_command(argc, argv, mem);
 	else if (strcmp(name, "query_method") == 0) rc = method_command(argc, argv, mem);
+	else if (strcmp(name, "search_symbols") == 0) rc = search_command(argc, argv, mem);
 	else if (strcmp(name, "list_instances") == 0) rc = list_command(argc, argv, mem);
 	else if (strcmp(name, "info") == 0) rc = info_command(argc, argv, mem);
 	else if (strcmp(name, "reindex") == 0) rc = reindex_command(argc, argv);

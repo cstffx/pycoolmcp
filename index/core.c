@@ -367,3 +367,13 @@ int index_schema_version(sqlite3 *db)
 	sqlite3_finalize(stmt);
 	return v;
 }
+
+int index_has_methods_table(sqlite3 *db)
+{
+	if (!db) return 0;
+	sqlite3_stmt *stmt;
+	if (sqlite3_prepare_v2(db, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='methods';", -1, &stmt, NULL) != SQLITE_OK) return 0;
+	int ok = (sqlite3_step(stmt) == SQLITE_ROW);
+	sqlite3_finalize(stmt);
+	return ok;
+}

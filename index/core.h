@@ -3,7 +3,9 @@
 
 #include <sqlite3.h>
 
-#define PYCOOL_SCHEMA_VERSION 1
+#define PYCOOL_SCHEMA_VERSION 2
+
+int index_has_methods_table(sqlite3 *db);
 
 int index_open(const char *path, sqlite3 **db);
 int index_schema_version(sqlite3 *db);

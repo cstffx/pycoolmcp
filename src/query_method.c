@@ -137,7 +137,7 @@ int method_command(int argc, char **argv, FILE *out)
 	}
 	{
 		int sv = index_schema_version(db);
-		if (sv != -1 && sv != PYCOOL_SCHEMA_VERSION) {
+		if (sv != -1 && (sv != PYCOOL_SCHEMA_VERSION || !index_has_methods_table(db))) {
 			fprintf(out, "error: schema mismatch (db=v%d, code=v%d)\n", sv, PYCOOL_SCHEMA_VERSION);
 			fprintf(out, "remedy: rebuild index with: pycool <root> %s\n", dbpath ? dbpath : "(db)");
 			sqlite3_close(db);

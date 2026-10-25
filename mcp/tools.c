@@ -180,6 +180,13 @@ void handle_tools_call(json_object *id, json_object *params)
 		const char *info = get_str(args, "info");
 		if (info) { argv[argc++] = "--info"; argv[argc++] = (char *)info; }
 		if (get_bool(args, "body", 0)) argv[argc++] = "--body";
+		const char *lines = get_str(args, "lines");
+		if (lines) { argv[argc++] = "--lines"; argv[argc++] = (char *)lines; }
+		int max_lines = get_int(args, "max_lines", 0);
+		if (max_lines > 0) {
+			static char mlbuf[32]; snprintf(mlbuf, sizeof(mlbuf), "%d", max_lines);
+			argv[argc++] = "--max-lines"; argv[argc++] = mlbuf;
+		}
 		if (get_bool(args, "refs", 0)) argv[argc++] = "--refs";
 		if (get_bool(args, "json", 0)) argv[argc++] = "--json";
 		if (get_bool(args, "compact", 0)) argv[argc++] = "--compact";
@@ -218,6 +225,13 @@ void handle_tools_call(json_object *id, json_object *params)
 			argv[argc++] = "--pid"; argv[argc++] = pidbuf;
 		}
 		if (get_bool(args, "body", 0)) argv[argc++] = "--body";
+		const char *mlines = get_str(args, "lines");
+		if (mlines) { argv[argc++] = "--lines"; argv[argc++] = (char *)mlines; }
+		int mmax = get_int(args, "max_lines", 0);
+		if (mmax > 0) {
+			static char mmbuf[32]; snprintf(mmbuf, sizeof(mmbuf), "%d", mmax);
+			argv[argc++] = "--max-lines"; argv[argc++] = mmbuf;
+		}
 		if (get_bool(args, "json", 0)) argv[argc++] = "--json";
 		int limit = get_int(args, "limit", 0);
 		if (limit > 0) {
@@ -269,6 +283,21 @@ void handle_tools_call(json_object *id, json_object *params)
 	int is_error = (rc != 0);
 	if (buf && (strstr(buf, "cannot open") || strstr(buf, "no running instance") || strstr(buf, "not found") || strstr(buf, "schema mismatch")))
 		is_error = 1;
+	/* hard cap ~3KB with pagination hint */
+	if (buf) {
+		size_t blen = strlen(buf);
+		if (blen > 3000) {
+			size_t cap = 3000;
+			while (cap > 0 && buf[cap] != '\n') cap--;
+			if (cap == 0) cap = 3000;
+			buf[cap] = '\0';
+			char tail[128];
+			snprintf(tail, sizeof(tail), "\n… (+%zu more bytes; use limit/offset)\n", blen - cap);
+			size_t nlen = strlen(buf);
+			buf = realloc(buf, nlen + strlen(tail) + 1);
+			strcat(buf, tail);
+		}
+	}
 	json_object *result = tool_result(buf ? buf : "", is_error);
 	send_response(id, result, NULL);
 	free(buf);

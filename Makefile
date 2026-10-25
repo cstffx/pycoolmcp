@@ -114,8 +114,17 @@ test_traverse: $(TESTS)/test_traverse.c $(SRC)/ast.o $(SRC)/traverse.o
 test_index: $(TESTS)/test_index.c $(INDEX)/core.o
 	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_index.c $(INDEX)/core.o -lsqlite3
 
+test_overlap: $(TESTS)/test_overlap.c $(SRC)/registry.o
+	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_overlap.c $(SRC)/registry.o $(LDFLAGS)
+
+test_ignore: $(TESTS)/test_ignore.c $(SRC)/ignore.o
+	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_ignore.c $(SRC)/ignore.o $(LDFLAGS)
+
+test_incremental: $(TESTS)/test_incremental.c libpycool.a
+	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_incremental.c libpycool.a $(LDFLAGS) -lpthread -ldl -lutil -lm
+
 clean:
-	rm -f *.o *.a *.so *.so.* test_ast test_traverse test_index pycool http_server pycoolmcp
+	rm -f *.o *.a *.so *.so.* test_ast test_traverse test_index test_overlap test_ignore test_incremental pycool http_server pycoolmcp
 	rm -rf bin $(SRC)/*.o $(INDEX)/*.o
 
 release:

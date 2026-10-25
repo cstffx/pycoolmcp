@@ -152,3 +152,36 @@ int registry_overlap(const char *root)
 	free(r);
 	return overlap;
 }
+
+char *registry_default_db(void)
+{
+	const char *env = getenv("PYCOOL_DB");
+	if (env && env[0]) return strdup(env);
+
+	char cwd[4096];
+	if (!getcwd(cwd, sizeof(cwd))) cwd[0] = '\0';
+	if (cwd[0]) {
+		char cur[4096];
+		strncpy(cur, cwd, sizeof(cur)-1);
+		cur[sizeof(cur)-1] = '\0';
+		for (;;) {
+			char path[4096];
+			snprintf(path, sizeof(path), "%s/.pycool/index.db", cur);
+			struct stat st;
+			if (stat(path, &st) == 0) return strdup(path);
+			char *slash = strrchr(cur, '/');
+			if (!slash || slash == cur) break;
+			*slash = '\0';
+		}
+	}
+
+	char **roots, **dbpaths; pid_t *pids; int n;
+	if (registry_list_paths(&roots, &dbpaths, &pids, &n) == 0 && n > 0 && dbpaths && dbpaths[0]) {
+		char *r = strdup(dbpaths[0]);
+		for (int i = 0; i < n; i++) { free(roots[i]); free(dbpaths[i]); }
+		free(roots); free(dbpaths); free(pids);
+		return r;
+	}
+	if (roots) { for (int i = 0; i < n; i++) { free(roots[i]); free(dbpaths[i]); } free(roots); free(dbpaths); free(pids); }
+	return NULL;
+}

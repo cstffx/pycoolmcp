@@ -1,0 +1,13 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+override_dh_auto_build:
+	$(MAKE) CFLAGS="$(CFLAGS) -I/usr/include/python3.13 -Isrc -Iindex -Ipycoolctl" LDFLAGS="$(LDFLAGS) -lpython3.13 -lsqlite3 -ljson-c"
+
+override_dh_auto_install:
+	install -D -m 0755 pycool debian/pycool/usr/bin/pycool
+	install -D -m 0755 bin/pycoolctl debian/pycool/usr/bin/pycoolctl
+	install -D -m 0755 pycoolmcp debian/pycoolmcp/usr/bin/pycoolmcp
+	install -D -m 0644 libpycool.so debian/libpycool0/usr/lib/libpycool.so
+	install -D -m 0644 src/pycool.h debian/libpycool-dev/usr/include/pycool/pycool.h

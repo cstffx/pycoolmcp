@@ -1,0 +1,37 @@
+Source: pycoolmcp
+Section: utils
+Priority: optional
+Maintainer: Elihu Diaz Alvarez <cstffx@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               build-essential,
+               libpython3-dev,
+               libsqlite3-dev,
+               libjson-c-dev,
+               pkg-config
+Standards-Version: 4.6.2
+
+Package: libpycool0
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Python source indexer library
+ Shared library used by pycool and pycoolmcp.
+
+Package: libpycool-dev
+Architecture: any
+Section: libdevel
+Depends: libpycool0 (= ${binary:Version}), ${misc:Depends}
+Description: Development files for libpycool
+ Headers and unversioned library for development.
+
+Package: pycool
+Architecture: any
+Depends: libpycool0 (>= ${source:Version}), ${shlibs:Depends}, ${misc:Depends}
+Description: Python source tree indexer daemon
+ Indexes Python source trees into SQLite.
+
+Package: pycoolmcp
+Architecture: any
+Depends: libpycool0 (>= ${source:Version}), ${shlibs:Depends}, ${misc:Depends}
+Description: MCP server for pycool
+ stdio MCP server exposing pycool queries.

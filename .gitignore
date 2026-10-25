@@ -21,3 +21,4 @@ __pycache__/
 .pytest_cache/http
 http_server
 pycoolmcp
+debian/*.substvars

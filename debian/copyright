@@ -32,3 +32,8 @@ License: MIT
 Files: debian/*
 Copyright: 2026 Elihu Diaz Alvarez
 License: MIT
+
+Third-party dependencies:
+ - Python (PSF License)
+ - SQLite (Public Domain)
+ - json-c (MIT)

@@ -7,6 +7,8 @@
 #include <errno.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <signal.h>
 #include <json-c/json.h>
 #include "../pycoolctl/class.h"
 #include "../pycoolctl/method.h"
@@ -17,9 +19,12 @@
 #define MAX_OUTPUT 65536
 
 static char pycoolctl_path[4096];
+static char pycool_path[4096];
+static pid_t index_pid = -1;
 
 static void resolve_pycoolctl(const char *argv0)
 {
+	/* argv0 is at most PATH_MAX; buffer is bounded and truncated safely. */
 	char dir[4096];
 	strncpy(dir, argv0, sizeof(dir) - 1);
 	dir[sizeof(dir) - 1] = '\0';
@@ -47,6 +52,38 @@ static void resolve_pycoolctl(const char *argv0)
 	}
 	strncpy(pycoolctl_path, "pycoolctl", sizeof(pycoolctl_path) - 1);
 	pycoolctl_path[sizeof(pycoolctl_path) - 1] = '\0';
+}
+
+static void resolve_pycool(const char *argv0)
+{
+	/* argv0 is at most PATH_MAX; buffer is bounded and truncated safely. */
+	char dir[4096];
+	strncpy(dir, argv0, sizeof(dir) - 1);
+	dir[sizeof(dir) - 1] = '\0';
+	char *slash = strrchr(dir, '/');
+	if (slash) *slash = '\0';
+	else strcpy(dir, ".");
+
+	const char *candidates[4];
+	char c0[4096], c1[4096], c2[4096];
+	snprintf(c0, sizeof(c0), "%s/pycool", dir);
+	snprintf(c1, sizeof(c1), "%s/bin/pycool", dir);
+	snprintf(c2, sizeof(c2), "%s/../bin/pycool", dir);
+	candidates[0] = c0;
+	candidates[1] = c1;
+	candidates[2] = c2;
+	candidates[3] = "pycool";
+
+	for (int i = 0; i < 4; i++) {
+		struct stat st;
+		if (access(candidates[i], X_OK) == 0 && stat(candidates[i], &st) == 0 && S_ISREG(st.st_mode)) {
+			strncpy(pycool_path, candidates[i], sizeof(pycool_path) - 1);
+			pycool_path[sizeof(pycool_path) - 1] = '\0';
+			return;
+		}
+	}
+	strncpy(pycool_path, "pycool", sizeof(pycool_path) - 1);
+	pycool_path[sizeof(pycool_path) - 1] = '\0';
 }
 
 static const char *get_str(json_object *o, const char *key)
@@ -154,6 +191,12 @@ static void handle_tools_list(json_object *id)
 	json_object *s5 = schema_obj("{\"type\":\"object\",\"properties\":{\"target\":{\"type\":\"string\"}},\"required\":[\"target\"]}");
 	json_object_array_add(tools, make_tool("reindex", "Trigger reindex for a pid or all running instances", s5));
 
+	json_object *s6 = schema_obj("{\"type\":\"object\",\"properties\":{\"root\":{\"type\":\"string\"},\"db\":{\"type\":\"string\"}},\"required\":[\"root\"]}");
+	json_object_array_add(tools, make_tool("index_start", "Start pycool indexer in background", s6));
+
+	json_object *s7 = schema_obj("{\"type\":\"object\",\"properties\":{}}");
+	json_object_array_add(tools, make_tool("index_stop", "Stop background pycool indexer", s7));
+
 	json_object *result = json_object_new_object();
 	json_object_object_add(result, "tools", tools);
 	send_response(id, result, NULL);
@@ -171,6 +214,59 @@ static void handle_tools_call(json_object *id, json_object *params)
 		json_object_object_add(err, "code", json_object_new_int(-32602));
 		json_object_object_add(err, "message", json_object_new_string("missing tool name"));
 		send_response(id, NULL, err);
+		return;
+	}
+
+	if (strcmp(name, "index_start") == 0) {
+		const char *root = get_str(args, "root");
+		const char *db = get_str(args, "db");
+		if (!root) {
+			json_object *err = json_object_new_object();
+			json_object_object_add(err, "code", json_object_new_int(-32602));
+			json_object_object_add(err, "message", json_object_new_string("missing root"));
+			send_response(id, NULL, err);
+			return;
+		}
+		if (index_pid > 0) {
+			json_object *result = tool_result("index already running", 0);
+			send_response(id, result, NULL);
+			return;
+		}
+		pid_t p = fork();
+		if (p < 0) {
+			json_object *result = tool_result("fork failed", 1);
+			send_response(id, result, NULL);
+			return;
+		}
+		if (p == 0) {
+			setsid();
+			int fd = open("/dev/null", O_RDWR);
+			if (fd >= 0) { dup2(fd, STDIN_FILENO); dup2(fd, STDOUT_FILENO); dup2(fd, STDERR_FILENO); close(fd); }
+			char *a[4]; int ac = 0;
+			a[ac++] = "pycool";
+			a[ac++] = (char *)root;
+			if (db) a[ac++] = (char *)db;
+			a[ac] = NULL;
+			execv(pycool_path, a);
+			_exit(127);
+		}
+		index_pid = p;
+		json_object *result = tool_result("index started", 0);
+		send_response(id, result, NULL);
+		return;
+	}
+
+	if (strcmp(name, "index_stop") == 0) {
+		if (index_pid <= 0) {
+			json_object *result = tool_result("no index running", 0);
+			send_response(id, result, NULL);
+			return;
+		}
+		kill(index_pid, SIGTERM);
+		waitpid(index_pid, NULL, 0);
+		index_pid = -1;
+		json_object *result = tool_result("index stopped", 0);
+		send_response(id, result, NULL);
 		return;
 	}
 
@@ -337,6 +433,7 @@ int main(int argc, char **argv)
 {
 	(void)argc;
 	resolve_pycoolctl(argv[0]);
+	resolve_pycool(argv[0]);
 	char *line = NULL;
 	size_t cap = 0;
 	ssize_t len;
@@ -352,6 +449,10 @@ int main(int argc, char **argv)
 		}
 		handle_request(req);
 		json_object_put(req);
+	}
+	if (index_pid > 0) {
+		kill(index_pid, SIGTERM);
+		waitpid(index_pid, NULL, 0);
 	}
 	free(line);
 	return 0;

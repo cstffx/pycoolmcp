@@ -95,7 +95,7 @@ http_server: $(HTTP)/http.c mcp/http_app.c
 # --- mcp server (stdio, JSON-RPC) ---
 MCP_CFLAGS := $(CFLAGS) $(shell pkg-config --cflags json-c 2>/dev/null)
 pycoolmcp: mcp/mcp_server.c libpycool.so
-	$(CC) $(MCP_CFLAGS) -o pycoolmcp mcp/mcp_server.c -L. -lpycool -ljson-c -lpython3.13 -lsqlite3 -Wl,-rpath,'$$ORIGIN' 
+	$(CC) $(MCP_CFLAGS) -o pycoolmcp mcp/mcp_server.c -L. -lpycool -ljson-c -lpython3.13 -lsqlite3 -Wl,-rpath,'$$ORIGIN' -Wl,-rpath,'$$ORIGIN/../lib' 
 
 # --- tests ---
 test_ast: $(TESTS)/test_ast.c $(SRC)/ast.o

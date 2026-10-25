@@ -3,6 +3,12 @@
 *.a
 *.so
 bin/
+debian/.debhelper/
+debian/debhelper-build-stamp
+debian/files
+debian/*.substvars
+debian/libpycool*/
+debian/pycool*/
 bin.rootowned*/
 pycool
 test_ast

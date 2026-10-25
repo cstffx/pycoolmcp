@@ -71,6 +71,9 @@ static void handle_signal(int sig)
 static void clean_index(sqlite3 *db)
 {
 	index_begin(db);
+	sqlite3_exec(db, "DELETE FROM method_args;", NULL, NULL, NULL);
+	sqlite3_exec(db, "DELETE FROM methods;", NULL, NULL, NULL);
+	sqlite3_exec(db, "DELETE FROM class_details;", NULL, NULL, NULL);
 	sqlite3_exec(db, "DELETE FROM types;", NULL, NULL, NULL);
 	sqlite3_exec(db, "DELETE FROM refs;", NULL, NULL, NULL);
 	sqlite3_exec(db, "DELETE FROM symbols;", NULL, NULL, NULL);

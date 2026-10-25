@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 #include "method.h"
 #include "../src/registry.h"
+#include "dbpath.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -119,9 +120,12 @@ int method_command(int argc, char **argv, FILE *out)
 		return 2;
 	}
 	if (!dbpath) {
+		dbpath = pycool_resolve_db();
+	}
+	if (!dbpath) {
 		char **roots, **dbpaths; pid_t *pids; int n;
 		if (registry_list_paths(&roots, &dbpaths, &pids, &n) != 0 || n == 0) {
-			fprintf(stderr, "no running instance; pass --db PATH\n");
+			fprintf(stderr, "no running instance and no default db; pass --db PATH or set PYCOOL_DB\n");
 			return 1;
 		}
 		if (pidstr) {

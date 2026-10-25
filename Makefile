@@ -11,6 +11,7 @@ HTTP := http
 # Library sources (core indexer + SQLite index layer + registry)
 LIB_SRCS := $(SRC)/ast.c $(SRC)/traverse.c $(SRC)/extract.c $(SRC)/scan.c \
             $(SRC)/ignore.c $(SRC)/observer.c $(SRC)/registry.c $(SRC)/pycool.c \
+            $(SRC)/dbpath.c \
             $(SRC)/query_class.c $(SRC)/query_method.c $(SRC)/query_list.c $(SRC)/query_info.c \
             $(SRC)/query_reindex.c \
             $(INDEX)/core.c $(INDEX)/class.c $(INDEX)/method.c
@@ -55,6 +56,9 @@ $(SRC)/registry.o: $(SRC)/registry.c $(SRC)/registry.h
 
 $(SRC)/pycool.o: $(SRC)/pycool.c $(SRC)/pycool.h
 	$(CC) $(CFLAGS) -c $(SRC)/pycool.c -o $(SRC)/pycool.o
+
+$(SRC)/dbpath.o: $(SRC)/dbpath.c $(SRC)/dbpath.h
+	$(CC) $(CFLAGS) -c $(SRC)/dbpath.c -o $(SRC)/dbpath.o
 
 $(SRC)/query_class.o: $(SRC)/query_class.c pycoolctl/class.h
 	$(CC) $(CFLAGS) -c $(SRC)/query_class.c -o $(SRC)/query_class.o

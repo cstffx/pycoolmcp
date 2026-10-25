@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 #include "class.h"
 #include "../src/registry.h"
+#include "dbpath.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -112,9 +113,12 @@ int class_command(int argc, char **argv, FILE *out)
 		return 2;
 	}
 	if (!dbpath) {
+		dbpath = pycool_resolve_db();
+	}
+	if (!dbpath) {
 		char **roots, **dbpaths; pid_t *pids; int n;
 		if (registry_list_paths(&roots, &dbpaths, &pids, &n) != 0 || n == 0) {
-			fprintf(stderr, "no running instance; pass --db PATH\n");
+			fprintf(stderr, "no running instance and no default db; pass --db PATH or set PYCOOL_DB\n");
 			return 1;
 		}
 		if (pidstr) {
@@ -193,11 +197,64 @@ int class_command(int argc, char **argv, FILE *out)
 		}
 		sqlite3_bind_text(rstmt, 1, name, -1, SQLITE_TRANSIENT);
 		if (file) sqlite3_bind_text(rstmt, 2, file, -1, SQLITE_TRANSIENT);
+		/* compress refs: path:12,15,18-22 (+N) */
+		char curpath[4096] = "";
+		int *lines_arr = NULL;
+		int nlines = 0, caplines = 0;
+		int total = 0;
+
 		while (sqlite3_step(rstmt) == SQLITE_ROW) {
 			const char *p = (const char *)sqlite3_column_text(rstmt, 0);
 			long ln = sqlite3_column_int64(rstmt, 1);
-			fprintf(out, "%s:%ld\n", p ? p : "", ln);
+			if (!p) p = "";
+			if (strcmp(curpath, p) != 0) {
+				if (curpath[0] && nlines > 0) {
+					fprintf(out, "%s:", curpath);
+					int i = 0;
+					int first = 1;
+					while (i < nlines) {
+						int start = lines_arr[i];
+						int end = start;
+						while (i + 1 < nlines && lines_arr[i+1] == end + 1) { i++; end = lines_arr[i]; }
+						if (!first) fprintf(out, ",");
+						if (start == end) fprintf(out, "%d", start);
+						else fprintf(out, "%d-%d", start, end);
+						first = 0;
+						i++;
+					}
+					if (total > nlines) fprintf(out, " (+%d)", total - nlines);
+					fprintf(out, "\n");
+				}
+				strncpy(curpath, p, sizeof(curpath)-1);
+				curpath[sizeof(curpath)-1] = '\0';
+				nlines = 0;
+				total = 0;
+			}
+			if (nlines == caplines) {
+				caplines = caplines ? caplines * 2 : 64;
+				lines_arr = realloc(lines_arr, caplines * sizeof(int));
+			}
+			lines_arr[nlines++] = (int)ln;
+			total++;
 		}
+		if (curpath[0] && nlines > 0) {
+			fprintf(out, "%s:", curpath);
+			int i = 0;
+			int first = 1;
+			while (i < nlines) {
+				int start = lines_arr[i];
+				int end = start;
+				while (i + 1 < nlines && lines_arr[i+1] == end + 1) { i++; end = lines_arr[i]; }
+				if (!first) fprintf(out, ",");
+				if (start == end) fprintf(out, "%d", start);
+				else fprintf(out, "%d-%d", start, end);
+				first = 0;
+				i++;
+			}
+			if (total > nlines) fprintf(out, " (+%d)", total - nlines);
+			fprintf(out, "\n");
+		}
+		free(lines_arr);
 		sqlite3_finalize(rstmt);
 		sqlite3_close(db);
 		return 0;

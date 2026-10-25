@@ -107,6 +107,9 @@ void handle_tools_list(json_object *id)
 	json_object *s7 = schema_obj("{\"type\":\"object\",\"properties\":{}}");
 	json_object_array_add(tools, make_tool("index_stop", "Stop background pycool indexer", s7));
 
+	json_object *s8 = schema_obj("{\"type\":\"object\",\"properties\":{\"op\":{\"type\":\"string\"},\"args\":{\"type\":\"object\"}},\"required\":[\"op\"]}");
+	json_object_array_add(tools, make_tool("pycool", "Consolidated pycool command (op,args)", s8));
+
 	json_object *result = json_object_new_object();
 	json_object_object_add(result, "tools", tools);
 	send_response(id, result, NULL);
@@ -118,6 +121,22 @@ void handle_tools_call(json_object *id, json_object *params)
 	json_object *args = NULL;
 	json_object_object_get_ex(params, "arguments", &args);
 	if (!args) args = json_object_new_object();
+
+	if (name && strcmp(name, "pycool") == 0) {
+		const char *op = get_str(args, "op");
+		json_object *inner = NULL;
+		json_object_object_get_ex(args, "args", &inner);
+		if (!op) {
+			json_object *err = json_object_new_object();
+			json_object_object_add(err, "code", json_object_new_int(-32602));
+			json_object_object_add(err, "message", json_object_new_string("missing op"));
+			send_response(id, NULL, err);
+			return;
+		}
+		if (!inner) inner = json_object_new_object();
+		name = op;
+		args = inner;
+	}
 
 	if (!name) {
 		json_object *err = json_object_new_object();

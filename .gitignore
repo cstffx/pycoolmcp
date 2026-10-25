@@ -18,3 +18,4 @@ test_index
 __pycache__/
 *.pyc
 .pytest_cache/http
+http_server

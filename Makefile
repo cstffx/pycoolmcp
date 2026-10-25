@@ -72,8 +72,8 @@ bin/pycoolctl: $(PYCOOLCTL_SRCS) libpycool.a
 	$(CC) $(CFLAGS) -o $@ $(PYCOOLCTL_SRCS) $(SRC)/registry.o -lsqlite3
 
 # --- http server ---
-http_server: $(HTTP)/http.c $(HTTP)/mcp.c
-	$(CC) $(CFLAGS) -o http_server $(HTTP)/http.c $(HTTP)/mcp.c
+http_server: $(HTTP)/http.c mcp/http_app.c
+	$(CC) $(CFLAGS) -o http_server $(HTTP)/http.c mcp/http_app.c
 
 # --- mcp server (stdio, JSON-RPC) ---
 MCP_CFLAGS := $(CFLAGS) $(shell pkg-config --cflags json-c 2>/dev/null)

@@ -14,7 +14,7 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 
-#include "http.h"
+#include "../http/http.h"
 
 #define MAX_OUTPUT    65536
 #define MAX_ARGV      128

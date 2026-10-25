@@ -6,23 +6,46 @@ SRC := src
 INDEX := index
 CLI := pycoolctl
 TESTS := tests
+HTTP := http
 
-SRCS := $(SRC)/pycool.c $(SRC)/extract.c $(SRC)/scan.c $(SRC)/ast.c $(SRC)/traverse.c \
-        $(SRC)/ignore.c $(SRC)/registry.c $(SRC)/observer.c
+# Library sources (core indexer + SQLite index layer + registry)
+LIB_SRCS := $(SRC)/ast.c $(SRC)/traverse.c $(SRC)/extract.c $(SRC)/scan.c \
+            $(SRC)/ignore.c $(SRC)/observer.c $(SRC)/registry.c $(SRC)/pycool.c \
+            $(INDEX)/core.c $(INDEX)/class.c $(INDEX)/method.c
 
-OBJS := $(SRC)/ast.o $(SRC)/traverse.o $(INDEX)/core.o $(INDEX)/class.o $(INDEX)/method.o \
-        $(SRC)/observer.o $(SRC)/registry.o $(SRC)/ignore.o
+LIB_OBJS := $(LIB_SRCS:.c=.o)
 
-all: libast.a pycool bin/pycoolctl
+.PHONY: all
+all: libpycool.a pycool bin/pycoolctl pycoolmcp
 
-libast.a: $(OBJS)
-	ar rcs $@ $(OBJS)
+# --- library ---
+libpycool.a: $(LIB_OBJS)
+	ar rcs $@ $(LIB_OBJS)
 
+# object rules
 $(SRC)/ast.o: $(SRC)/ast.c $(SRC)/ast.h
 	$(CC) $(CFLAGS) -c $(SRC)/ast.c -o $(SRC)/ast.o
 
 $(SRC)/traverse.o: $(SRC)/traverse.c $(SRC)/traverse.h $(SRC)/ast.h
 	$(CC) $(CFLAGS) -c $(SRC)/traverse.c -o $(SRC)/traverse.o
+
+$(SRC)/extract.o: $(SRC)/extract.c $(SRC)/extract.h
+	$(CC) $(CFLAGS) -c $(SRC)/extract.c -o $(SRC)/extract.o
+
+$(SRC)/scan.o: $(SRC)/scan.c $(SRC)/scan.h
+	$(CC) $(CFLAGS) -c $(SRC)/scan.c -o $(SRC)/scan.o
+
+$(SRC)/ignore.o: $(SRC)/ignore.c $(SRC)/ignore.h
+	$(CC) $(CFLAGS) -c $(SRC)/ignore.c -o $(SRC)/ignore.o
+
+$(SRC)/observer.o: $(SRC)/observer.c $(SRC)/observer.h
+	$(CC) $(CFLAGS) -c $(SRC)/observer.c -o $(SRC)/observer.o
+
+$(SRC)/registry.o: $(SRC)/registry.c $(SRC)/registry.h
+	$(CC) $(CFLAGS) -c $(SRC)/registry.c -o $(SRC)/registry.o
+
+$(SRC)/pycool.o: $(SRC)/pycool.c $(SRC)/pycool.h
+	$(CC) $(CFLAGS) -c $(SRC)/pycool.c -o $(SRC)/pycool.o
 
 $(INDEX)/core.o: $(INDEX)/core.c $(INDEX)/core.h $(INDEX)/class.h $(INDEX)/method.h
 	mkdir -p $(INDEX)
@@ -36,22 +59,24 @@ $(INDEX)/method.o: $(INDEX)/method.c $(INDEX)/method.h
 	mkdir -p $(INDEX)
 	$(CC) $(CFLAGS) -c $(INDEX)/method.c -o $(INDEX)/method.o
 
-$(SRC)/observer.o: $(SRC)/observer.c $(SRC)/observer.h
-	$(CC) $(CFLAGS) -c $(SRC)/observer.c -o $(SRC)/observer.o
+# --- pycool daemon ---
+pycool: $(SRC)/pycool_main.c libpycool.a
+	$(CC) $(CFLAGS) -o $@ $(SRC)/pycool_main.c libpycool.a $(LDFLAGS)
 
-$(SRC)/registry.o: $(SRC)/registry.c $(SRC)/registry.h
-	$(CC) $(CFLAGS) -c $(SRC)/registry.c -o $(SRC)/registry.o
+# --- pycoolctl cli ---
+PYCOOLCTL_SRCS := $(CLI)/main.c $(CLI)/list.c $(CLI)/info.c $(CLI)/class.c $(CLI)/method.c \
+                  $(CLI)/stop.c $(CLI)/clean.c $(CLI)/reindex.c
 
-$(SRC)/ignore.o: $(SRC)/ignore.c $(SRC)/ignore.h
-	$(CC) $(CFLAGS) -c $(SRC)/ignore.c -o $(SRC)/ignore.o
-
-pycool: $(SRCS) libast.a
-	$(CC) $(CFLAGS) -o $@ $(SRCS) libast.a $(LDFLAGS)
-
-bin/pycoolctl: $(CLI)/main.c $(CLI)/list.c $(CLI)/info.c $(CLI)/class.c $(CLI)/method.c $(CLI)/stop.c $(CLI)/clean.c $(CLI)/reindex.c $(SRC)/registry.o
+bin/pycoolctl: $(PYCOOLCTL_SRCS) libpycool.a
 	mkdir -p bin
-	$(CC) $(CFLAGS) -o $@ $(CLI)/main.c $(CLI)/list.c $(CLI)/info.c $(CLI)/class.c $(CLI)/method.c $(CLI)/stop.c $(CLI)/clean.c $(CLI)/reindex.c $(SRC)/registry.o -lsqlite3
+	$(CC) $(CFLAGS) -o $@ $(PYCOOLCTL_SRCS) $(SRC)/registry.o -lsqlite3
 
+# --- http / mcp server ---
+pycoolmcp http_server: $(HTTP)/http.c $(HTTP)/mcp.c
+	$(CC) $(CFLAGS) -o pycoolmcp $(HTTP)/http.c $(HTTP)/mcp.c
+	cp -f pycoolmcp http_server
+
+# --- tests ---
 test_ast: $(TESTS)/test_ast.c $(SRC)/ast.o
 	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_ast.c $(SRC)/ast.o $(LDFLAGS)
 
@@ -61,11 +86,8 @@ test_traverse: $(TESTS)/test_traverse.c $(SRC)/ast.o $(SRC)/traverse.o
 test_index: $(TESTS)/test_index.c $(INDEX)/core.o
 	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_index.c $(INDEX)/core.o -lsqlite3
 
-http_server: http/http.c http/mcp.c
-	$(CC) $(CFLAGS) -o http_server http/http.c http/mcp.c
-
 clean:
-	rm -f *.o *.a test_ast test_traverse test_index pycool http
+	rm -f *.o *.a test_ast test_traverse test_index pycool http_server pycoolmcp
 	rm -rf bin $(SRC)/*.o $(INDEX)/*.o
 
 release:
@@ -80,5 +102,7 @@ install: release
 	install -d $(DESTDIR)$(BINDIR)
 	install -m 0755 pycool $(DESTDIR)$(BINDIR)/pycool
 	install -m 0755 bin/pycoolctl $(DESTDIR)$(BINDIR)/pycoolctl
+	install -m 0755 pycoolmcp $(DESTDIR)$(BINDIR)/pycoolmcp
 
 .PHONY: all clean release install
+all: libpycool.a pycool bin/pycoolctl pycoolmcp

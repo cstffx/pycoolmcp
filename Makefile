@@ -69,7 +69,7 @@ PYCOOLCTL_SRCS := $(CLI)/main.c $(CLI)/list.c $(CLI)/info.c $(CLI)/class.c $(CLI
 
 bin/pycoolctl: $(PYCOOLCTL_SRCS) libpycool.a
 	mkdir -p bin
-	$(CC) $(CFLAGS) -o $@ $(PYCOOLCTL_SRCS) $(SRC)/registry.o -lsqlite3
+	$(CC) $(CFLAGS) -o $@ $(PYCOOLCTL_SRCS) libpycool.a -lsqlite3
 
 # --- http server ---
 http_server: $(HTTP)/http.c mcp/http_app.c

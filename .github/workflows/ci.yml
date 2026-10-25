@@ -22,7 +22,7 @@ jobs:
         run: cppcheck --enable=all --inconclusive --quiet src/ index/ mcp/ pycoolctl/ http/ 2>&1 | tee cppcheck.txt; test ! -s cppcheck.txt
 
       - name: Lint
-        run: make lint || true
+        run: make lint
 
       - name: Build
         run: make clean && make

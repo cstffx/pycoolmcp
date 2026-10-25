@@ -23,8 +23,9 @@ all: libpycool.a libpycool.so pycool bin/pycoolctl http_server pycoolmcp
 libpycool.a: $(LIB_OBJS)
 	ar rcs $@ $(LIB_OBJS)
 
-libpycool.so: $(LIB_SRCS)
-	$(CC) -shared -fPIC $(CFLAGS) -o $@ $(LIB_SRCS) $(LDFLAGS)
+libpycool.so libpycool.so.0: $(LIB_SRCS)
+	$(CC) -shared -fPIC $(CFLAGS) -Wl,-soname,libpycool.so.0 -o libpycool.so.0 $(LIB_SRCS) $(LDFLAGS)
+	ln -sf libpycool.so.0 libpycool.so
 
 # object rules
 $(SRC)/ast.o: $(SRC)/ast.c $(SRC)/ast.h
@@ -107,7 +108,7 @@ test_index: $(TESTS)/test_index.c $(INDEX)/core.o
 	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_index.c $(INDEX)/core.o -lsqlite3
 
 clean:
-	rm -f *.o *.a test_ast test_traverse test_index pycool http_server pycoolmcp
+	rm -f *.o *.a *.so *.so.* test_ast test_traverse test_index pycool http_server pycoolmcp
 	rm -rf bin $(SRC)/*.o $(INDEX)/*.o
 
 release:
@@ -126,7 +127,8 @@ install: all
 	install -m 0755 bin/pycoolctl $(DESTDIR)$(BINDIR)/pycoolctl
 	install -m 0755 pycoolmcp $(DESTDIR)$(BINDIR)/pycoolmcp
 	install -m 0755 http_server $(DESTDIR)$(BINDIR)/http_server
-	install -m 0644 libpycool.so $(DESTDIR)$(LIBDIR)/libpycool.so
+	install -m 0644 libpycool.so.0 $(DESTDIR)$(LIBDIR)/libpycool.so.0
+	ln -sf libpycool.so.0 $(DESTDIR)$(LIBDIR)/libpycool.so
 	install -m 0644 src/pycool.h $(DESTDIR)$(INCLUDEDIR)/pycool/pycool.h
 	install -m 0644 http/http.h $(DESTDIR)$(INCLUDEDIR)/pycool/http.h
 	@if [ -z "$(DESTDIR)" ]; then ldconfig; fi

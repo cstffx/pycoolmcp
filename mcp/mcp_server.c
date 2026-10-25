@@ -22,7 +22,7 @@ static void handle_initialize(json_object *id)
 
 	json_object *info = json_object_new_object();
 	json_object_object_add(info, "name", json_object_new_string("pycoolmcp"));
-	json_object_object_add(info, "version", json_object_new_string("0.1.0"));
+	json_object_object_add(info, "version", json_object_new_string("0.1.1"));
 	json_object_object_add(result, "serverInfo", info);
 
 	send_response(id, result, NULL);

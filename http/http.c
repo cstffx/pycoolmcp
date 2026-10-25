@@ -8,6 +8,8 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 
+static char pycoolctl_path[4096];
+
 static void url_decode(char *s)
 {
 	char *o = s;
@@ -38,16 +40,16 @@ static void run_query(int client, const char *subcmd, const char *query)
 	char buf[4096];
 	strncpy(buf, query ? query : "", sizeof(buf) - 1);
 	buf[sizeof(buf)-1] = '\0';
-	char *argv[64];
+	char *argv[128];
 	int argc = 0;
 	argv[argc++] = "pycoolctl";
 	argv[argc++] = (char *)subcmd;
 	/* split */
 	char *save = NULL;
 	char *tok = strtok_r(buf, "&", &save);
-	while (tok && argc < 62) {
+	while (tok && argc < 120) {
 		char *eq = strchr(tok, '=');
-		if (eq) {
+		if (eq && argc < 120) {
 			*eq = '\0';
 			char *key = tok;
 			char *val = eq + 1;
@@ -99,7 +101,7 @@ static void run_query(int client, const char *subcmd, const char *query)
 		close(pipefd[0]);
 		dup2(pipefd[1], STDOUT_FILENO);
 		close(pipefd[1]);
-		execv("./bin/pycoolctl", argv);
+		execv(pycoolctl_path, argv);
 		perror("exec");
 		_exit(127);
 	}
@@ -124,6 +126,15 @@ static void run_query(int client, const char *subcmd, const char *query)
 
 int main(int argc, char **argv)
 {
+	char *slash = strrchr(argv[0], '/');
+	if (slash) {
+		snprintf(pycoolctl_path, sizeof(pycoolctl_path), "%.*s/bin/pycoolctl", (int)(slash - argv[0]), argv[0]);
+	} else {
+		snprintf(pycoolctl_path, sizeof(pycoolctl_path), "./bin/pycoolctl");
+	}
+	if (access(pycoolctl_path, X_OK) != 0) {
+		snprintf(pycoolctl_path, sizeof(pycoolctl_path), "pycoolctl");
+	}
 	int port = 8080;
 	if (argc >= 2) port = atoi(argv[1]);
 	int srv = socket(AF_INET, SOCK_STREAM, 0);

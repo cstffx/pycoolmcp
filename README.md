@@ -34,6 +34,13 @@ HTTP server
 
     ./http_server [port] [bind]   # default: 127.0.0.1:8080
 
+MCP server (stdio, JSON-RPC)
+----------------------------
+
+    ./pycoolmcp
+
+Exposes tools: query_class, query_method, list_instances, info.
+
 Endpoints:
 
     GET /            health check

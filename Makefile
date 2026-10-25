@@ -16,7 +16,7 @@ LIB_SRCS := $(SRC)/ast.c $(SRC)/traverse.c $(SRC)/extract.c $(SRC)/scan.c \
 LIB_OBJS := $(LIB_SRCS:.c=.o)
 
 .PHONY: all
-all: libpycool.a pycool bin/pycoolctl pycoolmcp
+all: libpycool.a pycool bin/pycoolctl http_server pycoolmcp
 
 # --- library ---
 libpycool.a: $(LIB_OBJS)
@@ -71,10 +71,15 @@ bin/pycoolctl: $(PYCOOLCTL_SRCS) libpycool.a
 	mkdir -p bin
 	$(CC) $(CFLAGS) -o $@ $(PYCOOLCTL_SRCS) $(SRC)/registry.o -lsqlite3
 
-# --- http / mcp server ---
-pycoolmcp http_server: $(HTTP)/http.c $(HTTP)/mcp.c
-	$(CC) $(CFLAGS) -o pycoolmcp $(HTTP)/http.c $(HTTP)/mcp.c
-	cp -f pycoolmcp http_server
+# --- http server ---
+http_server: $(HTTP)/http.c $(HTTP)/mcp.c
+	$(CC) $(CFLAGS) -o http_server $(HTTP)/http.c $(HTTP)/mcp.c
+
+# --- mcp server (stdio, JSON-RPC) ---
+MCP_CFLAGS := $(CFLAGS) $(shell pkg-config --cflags json-c 2>/dev/null)
+MCP_LDFLAGS := -ljson-c
+pycoolmcp: mcp/mcp_server.c
+	$(CC) $(MCP_CFLAGS) -o pycoolmcp mcp/mcp_server.c $(MCP_LDFLAGS)
 
 # --- tests ---
 test_ast: $(TESTS)/test_ast.c $(SRC)/ast.o

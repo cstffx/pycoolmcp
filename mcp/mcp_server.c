@@ -12,6 +12,7 @@
 #include "../pycoolctl/method.h"
 #include "../pycoolctl/list.h"
 #include "../pycoolctl/info.h"
+#include "../pycoolctl/reindex.h"
 
 #define MAX_OUTPUT 65536
 
@@ -150,6 +151,9 @@ static void handle_tools_list(json_object *id)
 	json_object *s4 = schema_obj("{\"type\":\"object\",\"properties\":{\"target\":{\"type\":\"string\"}},\"required\":[\"target\"]}");
 	json_object_array_add(tools, make_tool("info", "Show index info (db, pid, or all)", s4));
 
+	json_object *s5 = schema_obj("{\"type\":\"object\",\"properties\":{\"target\":{\"type\":\"string\"}},\"required\":[\"target\"]}");
+	json_object_array_add(tools, make_tool("reindex", "Trigger reindex for a pid or all running instances", s5));
+
 	json_object *result = json_object_new_object();
 	json_object_object_add(result, "tools", tools);
 	send_response(id, result, NULL);
@@ -258,6 +262,11 @@ static void handle_tools_call(json_object *id, json_object *params)
 		if (!target) target = "all";
 		argv[argc++] = "info";
 		argv[argc++] = (char *)target;
+	} else if (strcmp(name, "reindex") == 0) {
+		const char *target = get_str(args, "target");
+		if (!target) target = "all";
+		argv[argc++] = "reindex";
+		argv[argc++] = (char *)target;
 	} else {
 		json_object *err = json_object_new_object();
 		json_object_object_add(err, "code", json_object_new_int(-32601));
@@ -275,10 +284,15 @@ static void handle_tools_call(json_object *id, json_object *params)
 	else if (strcmp(name, "query_method") == 0) rc = method_command(argc, argv, mem);
 	else if (strcmp(name, "list_instances") == 0) rc = list_command(argc, argv, mem);
 	else if (strcmp(name, "info") == 0) rc = info_command(argc, argv, mem);
+	else if (strcmp(name, "reindex") == 0) rc = reindex_command(argc, argv);
 	fclose(mem);
 
+	if (strcmp(name, "reindex") == 0 && rc == 0 && (!buf || !buf[0])) {
+		free(buf);
+		buf = strdup("reindex triggered");
+	}
 	int is_error = (rc != 0);
-	if (buf && (strstr(buf, "cannot open") || strstr(buf, "no running instance") || strstr(buf, "not found")))
+	if (buf && (strstr(buf, "cannot open") || strstr(buf, "no running instance") || strstr(buf, "not found") || strstr(buf, "schema mismatch")))
 		is_error = 1;
 	json_object *result = tool_result(buf ? buf : "", is_error);
 	send_response(id, result, NULL);

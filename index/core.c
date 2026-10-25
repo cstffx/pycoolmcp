@@ -85,6 +85,13 @@ int index_open(const char *path, sqlite3 **db)
 	}
 	sqlite3_exec(*db, "ALTER TABLE symbols ADD COLUMN detail TEXT;", NULL, NULL, NULL);
 	sqlite3_exec(*db, "ALTER TABLE class_details ADD COLUMN end_line INTEGER;", NULL, NULL, NULL);
+	char vsql[128];
+	snprintf(vsql, sizeof(vsql), "INSERT OR REPLACE INTO meta(key,value) VALUES('schema_version','%d');", PYCOOL_SCHEMA_VERSION);
+	char *verr = NULL;
+	if (sqlite3_exec(*db, vsql, NULL, NULL, &verr) != SQLITE_OK) {
+		fprintf(stderr, "meta insert error: %s\\n", verr ? verr : "(null)");
+		if (verr) sqlite3_free(verr);
+	}
 	return 0;
 }
 
@@ -346,3 +353,17 @@ int index_file_changed(sqlite3 *db, const char *path, long mtime, const char *ha
 
 
 
+
+int index_schema_version(sqlite3 *db)
+{
+	if (!db) return -1;
+	sqlite3_stmt *stmt;
+	if (sqlite3_prepare_v2(db, "SELECT value FROM meta WHERE key='schema_version';", -1, &stmt, NULL) != SQLITE_OK) return -1;
+	int v = -1;
+	if (sqlite3_step(stmt) == SQLITE_ROW) {
+		const unsigned char *t = sqlite3_column_text(stmt, 0);
+		if (t) v = atoi((const char *)t);
+	}
+	sqlite3_finalize(stmt);
+	return v;
+}

@@ -12,6 +12,7 @@ HTTP := http
 LIB_SRCS := $(SRC)/ast.c $(SRC)/traverse.c $(SRC)/extract.c $(SRC)/scan.c \
             $(SRC)/ignore.c $(SRC)/observer.c $(SRC)/registry.c $(SRC)/pycool.c \
             $(SRC)/query_class.c $(SRC)/query_method.c $(SRC)/query_list.c $(SRC)/query_info.c \
+            $(SRC)/query_reindex.c \
             $(INDEX)/core.c $(INDEX)/class.c $(INDEX)/method.c
 
 LIB_OBJS := $(LIB_SRCS:.c=.o)
@@ -64,6 +65,9 @@ $(SRC)/query_list.o: $(SRC)/query_list.c pycoolctl/list.h
 $(SRC)/query_info.o: $(SRC)/query_info.c pycoolctl/info.h
 	$(CC) $(CFLAGS) -c $(SRC)/query_info.c -o $(SRC)/query_info.o
 
+$(SRC)/query_reindex.o: $(SRC)/query_reindex.c pycoolctl/reindex.h
+	$(CC) $(CFLAGS) -c $(SRC)/query_reindex.c -o $(SRC)/query_reindex.o
+
 $(INDEX)/core.o: $(INDEX)/core.c $(INDEX)/core.h $(INDEX)/class.h $(INDEX)/method.h
 	mkdir -p $(INDEX)
 	$(CC) $(CFLAGS) -c $(INDEX)/core.c -o $(INDEX)/core.o
@@ -82,7 +86,7 @@ pycool: $(SRC)/pycool_main.c libpycool.a
 
 # --- pycoolctl cli ---
 PYCOOLCTL_SRCS := $(CLI)/main.c $(SRC)/query_list.c $(SRC)/query_info.c $(SRC)/query_class.c $(SRC)/query_method.c \
-                  $(CLI)/stop.c $(CLI)/clean.c $(CLI)/reindex.c
+                  $(CLI)/stop.c $(CLI)/clean.c $(SRC)/query_reindex.c
 
 bin/pycoolctl: $(PYCOOLCTL_SRCS) libpycool.a
 	mkdir -p bin

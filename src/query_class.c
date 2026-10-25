@@ -6,6 +6,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sqlite3.h>
+#include "../index/core.h"
 
 static const char *field_name(char c)
 {
@@ -133,6 +134,34 @@ int class_command(int argc, char **argv, FILE *out)
 	if (sqlite3_open(dbpath, &db) != SQLITE_OK) {
 		fprintf(stderr, "cannot open %s\n", dbpath);
 		return 1;
+	}
+	{
+		int sv = index_schema_version(db);
+		if (sv != -1 && sv != PYCOOL_SCHEMA_VERSION) {
+			fprintf(out, "error: schema mismatch (db=v%d, code=v%d)\n", sv, PYCOOL_SCHEMA_VERSION);
+			fprintf(out, "remedy: rebuild index with: pycool <root> %s\n", dbpath ? dbpath : "(db)");
+			sqlite3_close(db);
+			return 1;
+		}
+		if (sv == -1) {
+			char vsql[128];
+			snprintf(vsql, sizeof(vsql), "INSERT OR REPLACE INTO meta(key,value) VALUES('schema_version','%d');", PYCOOL_SCHEMA_VERSION);
+			sqlite3_exec(db, vsql, NULL, NULL, NULL);
+		}
+	}
+	{
+		int sv = index_schema_version(db);
+		if (sv != -1 && sv != PYCOOL_SCHEMA_VERSION) {
+			fprintf(out, "error: schema mismatch (db=v%d, code=v%d)\n", sv, PYCOOL_SCHEMA_VERSION);
+			fprintf(out, "remedy: rebuild index with: pycool <root> %s\n", dbpath ? dbpath : "(db)");
+			sqlite3_close(db);
+			return 1;
+		}
+		if (sv == -1) {
+			char vsql[128];
+			snprintf(vsql, sizeof(vsql), "INSERT OR REPLACE INTO meta(key,value) VALUES('schema_version','%d');", PYCOOL_SCHEMA_VERSION);
+			sqlite3_exec(db, vsql, NULL, NULL, NULL);
+		}
 	}
 	if (refs_mode) {
 		if (!name) {

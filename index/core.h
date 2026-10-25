@@ -3,7 +3,10 @@
 
 #include <sqlite3.h>
 
+#define PYCOOL_SCHEMA_VERSION 1
+
 int index_open(const char *path, sqlite3 **db);
+int index_schema_version(sqlite3 *db);
 int index_init(const char *path, sqlite3 **db);
 int index_remove_file(sqlite3 *db, const char *path);
 int index_remove_dir(sqlite3 *db, const char *dir);

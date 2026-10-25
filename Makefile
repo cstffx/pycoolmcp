@@ -116,13 +116,19 @@ release:
 
 PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin
+LIBDIR ?= $(PREFIX)/lib
+INCLUDEDIR ?= $(PREFIX)/include
 DESTDIR ?=
 
-install: release
-	install -d $(DESTDIR)$(BINDIR)
+install: all
+	install -d $(DESTDIR)$(BINDIR) $(DESTDIR)$(LIBDIR) $(DESTDIR)$(INCLUDEDIR)/pycool
 	install -m 0755 pycool $(DESTDIR)$(BINDIR)/pycool
 	install -m 0755 bin/pycoolctl $(DESTDIR)$(BINDIR)/pycoolctl
 	install -m 0755 pycoolmcp $(DESTDIR)$(BINDIR)/pycoolmcp
+	install -m 0755 http_server $(DESTDIR)$(BINDIR)/http_server
+	install -m 0644 libpycool.so $(DESTDIR)$(LIBDIR)/libpycool.so
+	install -m 0644 src/pycool.h $(DESTDIR)$(INCLUDEDIR)/pycool/pycool.h
+	install -m 0644 http/http.h $(DESTDIR)$(INCLUDEDIR)/pycool/http.h
 
 .PHONY: all clean release install
 all: libpycool.a pycool bin/pycoolctl pycoolmcp

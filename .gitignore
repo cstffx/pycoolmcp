@@ -1,0 +1,20 @@
+# Build artifacts
+*.o
+*.a
+bin/
+bin.rootowned*/
+pycool
+test_ast
+test_traverse
+test_subscriber
+test_index
+
+# Runtime
+.pycool/
+*.db
+.pycoolignore
+
+# Python caches
+__pycache__/
+*.pyc
+.pytest_cache/http

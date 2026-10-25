@@ -1,0 +1,244 @@
+#define _GNU_SOURCE
+#include "method.h"
+#include "../src/registry.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sqlite3.h>
+
+static void print_json_str(const char *s)
+{
+	putchar('"');
+	if (s) {
+		for (const unsigned char *p = (const unsigned char *)s; *p; p++) {
+			switch (*p) {
+				case '"': fputs("\\\"", stdout); break;
+				case '\\': fputs("\\\\", stdout); break;
+				case '\n': fputs("\\n", stdout); break;
+				case '\r': fputs("\\r", stdout); break;
+				case '\t': fputs("\\t", stdout); break;
+				default:
+					if (*p < 0x20) printf("\\u%04x", *p);
+					else putchar(*p);
+			}
+		}
+	}
+	putchar('"');
+}
+
+static char *build_params(sqlite3 *db, sqlite3_int64 method_id)
+{
+	char *buf = NULL;
+	size_t cap = 0, len = 0;
+	sqlite3_stmt *stmt;
+	const char *sql = "SELECT name, annotation, default_value, kind FROM method_args WHERE method_id=? ORDER BY position;";
+	if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) return strdup("");
+	sqlite3_bind_int64(stmt, 1, method_id);
+	int first = 1;
+	while (sqlite3_step(stmt) == SQLITE_ROW) {
+		const char *name = (const char *)sqlite3_column_text(stmt, 0);
+		const char *ann = (const char *)sqlite3_column_text(stmt, 1);
+		const char *def = (const char *)sqlite3_column_text(stmt, 2);
+		const char *kind = (const char *)sqlite3_column_text(stmt, 3);
+		char piece[512];
+		piece[0] = '\0';
+		if (kind && strcmp(kind, "varargs") == 0) snprintf(piece, sizeof(piece), "*%s", name ? name : "");
+		else if (kind && strcmp(kind, "kwargs") == 0) snprintf(piece, sizeof(piece), "**%s", name ? name : "");
+		else snprintf(piece, sizeof(piece), "%s", name ? name : "");
+		if (ann && ann[0]) {
+			char tmp[600];
+			snprintf(tmp, sizeof(tmp), "%s: %s", piece, ann);
+			strcpy(piece, tmp);
+		}
+		if (def && def[0]) {
+			char tmp[700];
+			snprintf(tmp, sizeof(tmp), "%s=%s", piece, def);
+			strcpy(piece, tmp);
+		}
+		size_t plen = strlen(piece);
+		if (len + plen + 4 >= cap) {
+			cap = cap ? cap * 2 : 256;
+			while (len + plen + 4 >= cap) cap *= 2;
+			buf = realloc(buf, cap);
+		}
+		if (!first) { buf[len++] = ','; buf[len++] = ' '; }
+		first = 0;
+		memcpy(buf + len, piece, plen);
+		len += plen;
+		buf[len] = '\0';
+	}
+	sqlite3_finalize(stmt);
+	if (!buf) buf = strdup("");
+	return buf;
+}
+
+static void print_class_body(const char *path, long start, long end)
+{
+	if (!path || start <= 0) return;
+	if (end < start) end = start;
+	FILE *f = fopen(path, "r");
+	if (!f) { perror(path); return; }
+	char *line = NULL;
+	size_t cap = 0;
+	ssize_t len;
+	long cur = 0;
+	while ((len = getline(&line, &cap, f)) != -1) {
+		cur++;
+		if (cur >= start && cur <= end) fputs(line, stdout);
+		if (cur >= end) break;
+	}
+	free(line);
+	fclose(f);
+}
+
+int method_command(int argc, char **argv)
+{
+	const char *class_name = NULL;
+	const char *method_name = NULL;
+	const char *file = NULL;
+	const char *pidstr = NULL;
+	const char *dbpath = NULL;
+	int json_mode = 0;
+	int body_mode = 0;
+	int limit = 0;
+	int offset = 0;
+	for (int i = 2; i < argc; i++) {
+		if (strcmp(argv[i], "--db") == 0 && i + 1 < argc) dbpath = argv[++i];
+		else if (strcmp(argv[i], "--pid") == 0 && i + 1 < argc) pidstr = argv[++i];
+		else if (strcmp(argv[i], "--file") == 0 && i + 1 < argc) file = argv[++i];
+		else if (strcmp(argv[i], "--json") == 0) json_mode = 1;
+		else if (strcmp(argv[i], "--body") == 0) body_mode = 1;
+		else if (strcmp(argv[i], "--limit") == 0 && i + 1 < argc) limit = atoi(argv[++i]);
+		else if (strcmp(argv[i], "--offset") == 0 && i + 1 < argc) offset = atoi(argv[++i]);
+		else if (!class_name) class_name = argv[i];
+		else if (!method_name) method_name = argv[i];
+	}
+	if (!class_name) {
+		fprintf(stderr, "usage: pycoolctl method <Class> [Method] [--file PATH] [--body] [--json] [--limit N] [--offset N] [--pid PID] [--db PATH]\n");
+		return 2;
+	}
+	if (!dbpath) {
+		char **roots, **dbpaths; pid_t *pids; int n;
+		if (registry_list_paths(&roots, &dbpaths, &pids, &n) != 0 || n == 0) {
+			fprintf(stderr, "no running instance; pass --db PATH\n");
+			return 1;
+		}
+		if (pidstr) {
+			pid_t target = (pid_t)atoi(pidstr);
+			for (int i = 0; i < n; i++) if (pids[i] == target) { dbpath = dbpaths[i]; break; }
+			if (!dbpath) { fprintf(stderr, "pid %s not found\n", pidstr); return 1; }
+		} else dbpath = dbpaths[0];
+	}
+	sqlite3 *db;
+	if (sqlite3_open(dbpath, &db) != SQLITE_OK) {
+		fprintf(stderr, "cannot open %s\n", sqlite3_errmsg(db));
+		return 1;
+	}
+	char sql[2048];
+	if (file) {
+		snprintf(sql, sizeof(sql),
+		         "SELECT m.id, m.name, f.path, m.line, m.end_line, m.decorators, m.returns, m.docstring "
+		         "FROM methods m JOIN symbols s ON m.class_symbol_id=s.id JOIN files f ON s.file_id=f.id "
+		         "WHERE s.kind='class' AND s.name=? AND m.name %s ? AND f.path=? "
+		         "ORDER BY f.path, m.line %s %s;",
+		         method_name ? "=" : "LIKE", limit > 0 ? "" : "", offset > 0 ? "" : "");
+	} else {
+		snprintf(sql, sizeof(sql),
+		         "SELECT m.id, m.name, f.path, m.line, m.end_line, m.decorators, m.returns, m.docstring "
+		         "FROM methods m JOIN symbols s ON m.class_symbol_id=s.id JOIN files f ON s.file_id=f.id "
+		         "WHERE s.kind='class' AND s.name=? %s %s "
+		         "ORDER BY f.path, m.line %s %s;",
+		         method_name ? "AND m.name=?" : "", "", limit > 0 ? "" : "", offset > 0 ? "" : "");
+	}
+	/* rebuild cleanly with optional filters */
+	/* We'll just prepare a simpler dynamic query */
+	sqlite3_stmt *stmt;
+	/* Construct final query string properly */
+	char q[2048];
+	q[0] = '\0';
+	snprintf(q, sizeof(q),
+	         "SELECT m.id, m.name, f.path, m.line, m.end_line, m.decorators, m.returns, m.docstring "
+	         "FROM methods m JOIN symbols s ON m.class_symbol_id=s.id JOIN files f ON s.file_id=f.id "
+	         "WHERE s.kind='class' AND s.name=?");
+	size_t qlen = strlen(q);
+	if (method_name) {
+		snprintf(q + qlen, sizeof(q) - qlen, " AND m.name=?");
+		qlen = strlen(q);
+	}
+	if (file) {
+		snprintf(q + qlen, sizeof(q) - qlen, " AND f.path=?");
+		qlen = strlen(q);
+	}
+	snprintf(q + qlen, sizeof(q) - qlen, " ORDER BY f.path, m.line");
+	qlen = strlen(q);
+	if (limit > 0) {
+		snprintf(q + qlen, sizeof(q) - qlen, " LIMIT %d", limit);
+		qlen = strlen(q);
+	}
+	if (offset > 0) {
+		snprintf(q + qlen, sizeof(q) - qlen, " OFFSET %d", offset);
+		qlen = strlen(q);
+	}
+	if (sqlite3_prepare_v2(db, q, -1, &stmt, NULL) != SQLITE_OK) {
+		fprintf(stderr, "query error: %s\n", sqlite3_errmsg(db));
+		sqlite3_close(db);
+		return 1;
+	}
+	int bi = 1;
+	sqlite3_bind_text(stmt, bi++, class_name, -1, SQLITE_TRANSIENT);
+	if (method_name) sqlite3_bind_text(stmt, bi++, method_name, -1, SQLITE_TRANSIENT);
+	if (file) sqlite3_bind_text(stmt, bi++, file, -1, SQLITE_TRANSIENT);
+
+	if (json_mode) printf("[\n");
+	int first = 1;
+	int had = 0;
+	while (sqlite3_step(stmt) == SQLITE_ROW) {
+		had = 1;
+		sqlite3_int64 mid = sqlite3_column_int64(stmt, 0);
+		const char *mname = (const char *)sqlite3_column_text(stmt, 1);
+		const char *mpath = (const char *)sqlite3_column_text(stmt, 2);
+		long mline = sqlite3_column_int64(stmt, 3);
+		long mend = sqlite3_column_int64(stmt, 4);
+		const char *mdecs = (const char *)sqlite3_column_text(stmt, 5);
+		const char *mret = (const char *)sqlite3_column_text(stmt, 6);
+		const char *mdoc = (const char *)sqlite3_column_text(stmt, 7);
+		char *params = build_params(db, mid);
+		if (body_mode) {
+			if (mend <= 0) mend = mline;
+			print_class_body(mpath, mline, mend);
+			free(params);
+			continue;
+		}
+		if (json_mode) {
+			if (!first) printf(",\n");
+			first = 0;
+			printf("  {\"class\":");
+			print_json_str(class_name);
+			printf(",\"method\":");
+			print_json_str(mname);
+			printf(",\"file\":");
+			print_json_str(mpath);
+			printf(",\"line\":%ld,\"end_line\":%ld", mline, mend);
+			printf(",\"decorators\":");
+			print_json_str(mdecs);
+			printf(",\"returns\":");
+			print_json_str(mret);
+			printf(",\"docstring\":");
+			print_json_str(mdoc);
+			printf(",\"params\":\"%s\"}", params ? params : "");
+		} else {
+			printf("%s.%s(%s)", class_name, mname ? mname : "", params ? params : "");
+			if (mret && mret[0]) printf(" -> %s", mret);
+			if (mdecs && mdecs[0]) printf(" %s", mdecs);
+			printf(" %s:%ld-%ld\n", mpath ? mpath : "", mline, mend);
+		}
+		free(params);
+	}
+	if (json_mode) {
+		if (had) printf("\n]\n");
+		else printf("[]\n");
+	}
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+	return 0;
+}

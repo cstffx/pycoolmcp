@@ -2,6 +2,7 @@
 #define PYCOOLS_EXTRACT_H
 
 #include <sqlite3.h>
+// cppcheck-suppress missingIncludeSystem
 #include <Python.h>
 
 typedef struct { sqlite3 *db; sqlite3_int64 file_id; } Ctx;

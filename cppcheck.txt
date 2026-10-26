@@ -1,0 +1,785 @@
+src/ast.h:5:0: information: Include file: <Python.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <Python.h>
+^
+src/ast.c:2:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+src/ast.c:3:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+src/ast.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+src/ast.c:27:2: warning: If memory allocation fails, then there is a possible null pointer dereference: a [nullPointerOutOfMemory]
+ a->module = mod;
+ ^
+src/ast.c:26:17: note: Assuming allocation function fails
+ Ast *a = calloc(1, sizeof(Ast));
+                ^
+src/ast.c:26:17: note: Assignment 'a=calloc(1,sizeof(struct Ast))', assigned value is 0
+ Ast *a = calloc(1, sizeof(Ast));
+                ^
+src/ast.c:27:2: note: Null pointer dereference
+ a->module = mod;
+ ^
+src/dbpath.c:3:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+src/dbpath.c:4:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+src/dbpath.c:5:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+src/dbpath.c:6:0: information: Include file: <unistd.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <unistd.h>
+^
+src/dbpath.c:7:0: information: Include file: <sys/stat.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/stat.h>
+^
+src/dbpath.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+src/extract.h:4:0: information: Include file: <sqlite3.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sqlite3.h>
+^
+src/extract.h:6:0: information: Include file: <Python.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <Python.h>
+^
+index/core.h:4:0: information: Include file: <sqlite3.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sqlite3.h>
+^
+index/class.h:4:0: information: Include file: <sqlite3.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sqlite3.h>
+^
+index/method.h:4:0: information: Include file: <sqlite3.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sqlite3.h>
+^
+src/extract.c:6:0: information: Include file: <Python.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <Python.h> // cppcheck-suppress missingIncludeSystem
+^
+src/extract.c:7:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+src/extract.c:8:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+src/extract.c:9:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+src/extract.c:43:1: information: Limiting ValueFlow analysis in function 'on_node' since it is too complex. Please specify --check-level=exhaustive to perform full analysis. [checkLevelNormal]
+{
+^
+src/extract.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+src/extract.c:70:51: error: Common realloc mistake: 'bases' nulled but not freed upon failure [memleakOnRealloc]
+       if (len + add >= cap) { cap = (len+add)*2; bases = realloc(bases, cap); }
+                                                  ^
+src/extract.c:140:52: error: Common realloc mistake: 'methods' nulled but not freed upon failure [memleakOnRealloc]
+        if (len + add >= cap) { cap = (len+add)*2; methods = realloc(methods, cap); }
+                                                   ^
+src/extract.c:336:56: error: Common realloc mistake: 'methods' nulled but not freed upon failure [memleakOnRealloc]
+            if (len + add >= cap) { cap = (len+add)*2; methods = realloc(methods, cap); }
+                                                       ^
+src/extract.c:461:56: error: Common realloc mistake: 'methods' nulled but not freed upon failure [memleakOnRealloc]
+            if (len + add >= cap) { cap = (len+add)*2; methods = realloc(methods, cap); }
+                                                       ^
+src/extract.c:527:51: error: Common realloc mistake: 'decorators' nulled but not freed upon failure [memleakOnRealloc]
+       if (len + add >= cap) { cap = (len+add)*2; decorators = realloc(decorators, cap); }
+                                                  ^
+src/extract.c:49:17: style: Local variable 'sid' shadows outer variable [shadowVariable]
+  sqlite3_int64 sid = 0;
+                ^
+src/extract.c:46:16: note: Shadowed declaration
+ sqlite3_int64 sid;
+               ^
+src/extract.c:49:17: note: Shadow variable
+  sqlite3_int64 sid = 0;
+                ^
+src/extract.c:189:27: style: Local variable 'i' shadows outer variable [shadowVariable]
+          for (Py_ssize_t i = 0; i < np; i++) PyList_Append(combined, PyList_GetItem(posonly, i));
+                          ^
+src/extract.c:88:21: note: Shadowed declaration
+    for (Py_ssize_t i = 0; i < nb; i++) {
+                    ^
+src/extract.c:189:27: note: Shadow variable
+          for (Py_ssize_t i = 0; i < np; i++) PyList_Append(combined, PyList_GetItem(posonly, i));
+                          ^
+src/extract.c:193:27: style: Local variable 'i' shadows outer variable [shadowVariable]
+          for (Py_ssize_t i = 0; i < np; i++) PyList_Append(combined, PyList_GetItem(pos, i));
+                          ^
+src/extract.c:88:21: note: Shadowed declaration
+    for (Py_ssize_t i = 0; i < nb; i++) {
+                    ^
+src/extract.c:193:27: note: Shadow variable
+          for (Py_ssize_t i = 0; i < np; i++) PyList_Append(combined, PyList_GetItem(pos, i));
+                          ^
+src/extract.c:198:26: style: Local variable 'i' shadows outer variable [shadowVariable]
+         for (Py_ssize_t i = 0; i < ncombined; i++) {
+                         ^
+src/extract.c:88:21: note: Shadowed declaration
+    for (Py_ssize_t i = 0; i < nb; i++) {
+                    ^
+src/extract.c:198:26: note: Shadow variable
+         for (Py_ssize_t i = 0; i < ncombined; i++) {
+                         ^
+src/extract.c:244:27: style: Local variable 'i' shadows outer variable [shadowVariable]
+          for (Py_ssize_t i = 0; i < nkw; i++) {
+                          ^
+src/extract.c:88:21: note: Shadowed declaration
+    for (Py_ssize_t i = 0; i < nb; i++) {
+                    ^
+src/extract.c:244:27: note: Shadow variable
+          for (Py_ssize_t i = 0; i < nkw; i++) {
+                          ^
+src/extract.c:366:68: style: Local variable 'i' shadows outer variable [shadowVariable]
+             if (posonly && PyList_Check(posonly)) for (Py_ssize_t i=0;i<PyList_Size(posonly);i++) PyList_Append(combined, PyList_GetItem(posonly,i));
+                                                                   ^
+src/extract.c:88:21: note: Shadowed declaration
+    for (Py_ssize_t i = 0; i < nb; i++) {
+                    ^
+src/extract.c:366:68: note: Shadow variable
+             if (posonly && PyList_Check(posonly)) for (Py_ssize_t i=0;i<PyList_Size(posonly);i++) PyList_Append(combined, PyList_GetItem(posonly,i));
+                                                                   ^
+src/extract.c:367:60: style: Local variable 'i' shadows outer variable [shadowVariable]
+             if (pos && PyList_Check(pos)) for (Py_ssize_t i=0;i<PyList_Size(pos);i++) PyList_Append(combined, PyList_GetItem(pos,i));
+                                                           ^
+src/extract.c:88:21: note: Shadowed declaration
+    for (Py_ssize_t i = 0; i < nb; i++) {
+                    ^
+src/extract.c:367:60: note: Shadow variable
+             if (pos && PyList_Check(pos)) for (Py_ssize_t i=0;i<PyList_Size(pos);i++) PyList_Append(combined, PyList_GetItem(pos,i));
+                                                           ^
+src/extract.c:370:30: style: Local variable 'i' shadows outer variable [shadowVariable]
+             for (Py_ssize_t i=0;i<ncombined;i++) {
+                             ^
+src/extract.c:88:21: note: Shadowed declaration
+    for (Py_ssize_t i = 0; i < nb; i++) {
+                    ^
+src/extract.c:370:30: note: Shadow variable
+             for (Py_ssize_t i=0;i<ncombined;i++) {
+                             ^
+src/extract.c:396:25: style: Local variable 'vname' shadows outer variable [shadowVariable]
+              PyObject *vname = PyObject_GetAttrString(vararg,"arg");
+                        ^
+src/extract.c:310:17: note: Shadowed declaration
+      PyObject *vname = vcls ? PyObject_GetAttrString(vcls, "__name__") : NULL;
+                ^
+src/extract.c:396:25: note: Shadow variable
+              PyObject *vname = PyObject_GetAttrString(vararg,"arg");
+                        ^
+src/extract.c:407:31: style: Local variable 'i' shadows outer variable [shadowVariable]
+              for (Py_ssize_t i=0;i<nkw;i++) {
+                              ^
+src/extract.c:88:21: note: Shadowed declaration
+    for (Py_ssize_t i = 0; i < nb; i++) {
+                    ^
+src/extract.c:407:31: note: Shadow variable
+              for (Py_ssize_t i=0;i<nkw;i++) {
+                              ^
+src/extract.c:676:19: style: Local variable 'sid' shadows outer variable [shadowVariable]
+    sqlite3_int64 sid = sqlite3_column_int64(stmt, 0);
+                  ^
+src/extract.c:46:16: note: Shadowed declaration
+ sqlite3_int64 sid;
+               ^
+src/extract.c:676:19: note: Shadow variable
+    sqlite3_int64 sid = sqlite3_column_int64(stmt, 0);
+                  ^
+src/ignore.c:3:0: information: Include file: <fnmatch.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <fnmatch.h>
+^
+src/ignore.c:4:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+src/ignore.c:5:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+src/ignore.c:6:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+src/ignore.c:7:0: information: Include file: <sys/stat.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/stat.h>
+^
+src/ignore.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+src/ignore.c:34:9: style: Variable 'p' can be declared as pointer to const [constVariablePointer]
+  char *p = line;
+        ^
+src/ignore.c:56:31: style: Parameter 'ig' can be declared as pointer to const [constParameterPointer]
+int ignore_is_ignored(Ignore *ig, const char *root, const char *path)
+                              ^
+src/observer.h:4:0: information: Include file: <stdint.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdint.h>
+^
+src/observer.h:5:0: information: Include file: <sys/inotify.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/inotify.h>
+^
+src/observer.c:3:0: information: Include file: <sys/inotify.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/inotify.h>
+^
+src/observer.c:4:0: information: Include file: <sys/stat.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/stat.h>
+^
+src/observer.c:5:0: information: Include file: <dirent.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <dirent.h>
+^
+src/observer.c:6:0: information: Include file: <unistd.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <unistd.h>
+^
+src/observer.c:7:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+src/observer.c:8:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+src/observer.c:9:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+src/observer.c:10:0: information: Include file: <errno.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <errno.h>
+^
+src/observer.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+src/observer.c:60:17: style: Variable 'ent' can be declared as pointer to const [constVariablePointer]
+ struct dirent *ent;
+                ^
+src/scan.h:4:0: information: Include file: <sqlite3.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sqlite3.h>
+^
+src/registry.h:4:0: information: Include file: <stddef.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stddef.h>
+^
+src/registry.h:5:0: information: Include file: <sys/types.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/types.h>
+^
+src/pycool.c:12:0: information: Include file: <signal.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <signal.h>
+^
+src/pycool.c:14:0: information: Include file: <Python.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <Python.h>
+^
+src/pycool.c:15:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+src/pycool.c:16:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+src/pycool.c:17:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+src/pycool.c:18:0: information: Include file: <sys/stat.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/stat.h>
+^
+src/pycool.c:19:0: information: Include file: <dirent.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <dirent.h>
+^
+src/pycool.c:20:0: information: Include file: <errno.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <errno.h>
+^
+src/pycool.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+src/pycool_main.c:3:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+src/pycool_main.c:4:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+src/pycool_main.c:5:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+src/pycool_main.c:6:0: information: Include file: <sys/stat.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/stat.h>
+^
+src/pycool_main.c:7:0: information: Include file: <sys/types.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/types.h>
+^
+src/query_class.c:2:0: information: Include file: "class.h" not found. [missingInclude]
+#include "class.h"
+^
+src/query_class.c:4:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+src/query_class.c:5:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+src/query_class.c:6:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+src/query_class.c:7:0: information: Include file: <sys/stat.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/stat.h>
+^
+src/query_class.c:8:0: information: Include file: <sqlite3.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sqlite3.h>
+^
+src/query_class.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+src/query_class.c:428:32: warning: Comparison of identical string variables. [stringCompare]
+    if (*p == 'K' && (!path || strcmp(path, path) == 0)) continue; /* module=file, skip */
+                               ^
+src/query_info.c:2:0: information: Include file: "info.h" not found. [missingInclude]
+#include "info.h"
+^
+src/query_info.c:4:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+src/query_info.c:5:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+src/query_info.c:6:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+src/query_info.c:7:0: information: Include file: <sys/stat.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/stat.h>
+^
+src/query_info.c:8:0: information: Include file: <sqlite3.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sqlite3.h>
+^
+src/query_info.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+src/query_info.c:28:9: style: Variable 'dbpath' can be declared as pointer to const [constVariablePointer]
+  char *dbpath = NULL;
+        ^
+src/query_list.c:2:0: information: Include file: "list.h" not found. [missingInclude]
+#include "list.h"
+^
+src/query_list.c:4:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+src/query_list.c:5:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+src/query_list.c:6:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+src/query_list.c:7:0: information: Include file: <sys/stat.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/stat.h>
+^
+src/query_list.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+src/query_method.c:2:0: information: Include file: "method.h" not found. [missingInclude]
+#include "method.h"
+^
+src/query_method.c:4:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+src/query_method.c:5:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+src/query_method.c:6:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+src/query_method.c:7:0: information: Include file: <sqlite3.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sqlite3.h>
+^
+src/query_method.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+src/query_reindex.c:2:0: information: Include file: "reindex.h" not found. [missingInclude]
+#include "reindex.h"
+^
+src/query_reindex.c:4:0: information: Include file: <signal.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <signal.h>
+^
+src/query_reindex.c:5:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+src/query_reindex.c:6:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+src/query_reindex.c:7:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+pycoolctl/search.h:3:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+src/query_search.c:4:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+src/query_search.c:5:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+src/query_search.c:6:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+src/query_search.c:7:0: information: Include file: <ctype.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <ctype.h>
+^
+src/query_search.c:8:0: information: Include file: <regex.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <regex.h>
+^
+src/query_search.c:9:0: information: Include file: <sqlite3.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sqlite3.h>
+^
+src/query_search.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+src/query_search.c:120:26: style: Condition 'need_comma' is always false [knownConditionTrueFalse]
+   if (want_class) { if (need_comma) strcat(kindclause, ","); strcat(kindclause, "'class'"); need_comma = 1; }
+                         ^
+src/query_search.c:118:21: note: Assignment 'need_comma=0', assigned value is 0
+   int need_comma = 0;
+                    ^
+src/query_search.c:120:26: note: Condition 'need_comma' is always false
+   if (want_class) { if (need_comma) strcat(kindclause, ","); strcat(kindclause, "'class'"); need_comma = 1; }
+                         ^
+src/query_search.c:122:111: style: Variable 'need_comma' is assigned a value that is never used. [unreadVariable]
+   if (want_variable) { if (need_comma) strcat(kindclause, ","); strcat(kindclause, "'variable'"); need_comma = 1; }
+                                                                                                              ^
+src/registry.c:3:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+src/registry.c:4:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+src/registry.c:5:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+src/registry.c:6:0: information: Include file: <unistd.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <unistd.h>
+^
+src/registry.c:7:0: information: Include file: <sys/stat.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/stat.h>
+^
+src/registry.c:8:0: information: Include file: <sys/types.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/types.h>
+^
+src/registry.c:9:0: information: Include file: <dirent.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <dirent.h>
+^
+src/registry.c:10:0: information: Include file: <signal.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <signal.h>
+^
+src/registry.c:11:0: information: Include file: <errno.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <errno.h>
+^
+src/registry.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+src/registry.c:91:17: style: Variable 'ent' can be declared as pointer to const [constVariablePointer]
+ struct dirent *ent;
+                ^
+src/scan.c:9:0: information: Include file: <Python.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <Python.h>
+^
+src/scan.c:10:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+src/scan.c:11:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+src/scan.c:12:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+src/scan.c:13:0: information: Include file: <sys/stat.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/stat.h>
+^
+src/scan.c:14:0: information: Include file: <dirent.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <dirent.h>
+^
+src/scan.c:15:0: information: Include file: <errno.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <errno.h>
+^
+src/scan.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+src/scan.c:122:17: style: Variable 'ent' can be declared as pointer to const [constVariablePointer]
+ struct dirent *ent;
+                ^
+src/traverse.c:3:0: information: Include file: <Python.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <Python.h>
+^
+src/traverse.c:4:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+src/traverse.c:5:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+src/traverse.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+index/class.c:2:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+index/class.c:3:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+index/class.c:4:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+index/class.c:5:0: information: Include file: <sqlite3.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sqlite3.h>
+^
+index/core.c:2:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+index/core.c:3:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+index/core.c:4:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+index/core.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+index/method.c:2:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+index/method.c:3:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+index/method.c:4:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+index/method.c:5:0: information: Include file: <sqlite3.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sqlite3.h>
+^
+mcp/http_app.c:2:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+mcp/http_app.c:3:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+mcp/http_app.c:4:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+mcp/http_app.c:5:0: information: Include file: <unistd.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <unistd.h>
+^
+mcp/http_app.c:6:0: information: Include file: <ctype.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <ctype.h>
+^
+mcp/http_app.c:7:0: information: Include file: <errno.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <errno.h>
+^
+mcp/http_app.c:8:0: information: Include file: <fcntl.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <fcntl.h>
+^
+mcp/http_app.c:9:0: information: Include file: <signal.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <signal.h>
+^
+mcp/http_app.c:10:0: information: Include file: <time.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <time.h>
+^
+mcp/http_app.c:11:0: information: Include file: <sys/socket.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/socket.h>
+^
+mcp/http_app.c:12:0: information: Include file: <sys/select.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/select.h>
+^
+mcp/http_app.c:13:0: information: Include file: <netinet/in.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <netinet/in.h>
+^
+mcp/http_app.c:14:0: information: Include file: <arpa/inet.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <arpa/inet.h>
+^
+mcp/http_app.c:15:0: information: Include file: <sys/wait.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/wait.h>
+^
+http/http.h:4:0: information: Include file: <stddef.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stddef.h>
+^
+mcp/http_app.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+mcp/http_app.c:179:8: style: Variable 'slash' can be declared as pointer to const [constVariablePointer]
+ char *slash = strrchr(argv[0], '/');
+       ^
+mcp/http_app.c:136:15: style: Variable 'child_done' is assigned a value that is never used. [unreadVariable]
+   child_done = 1;
+              ^
+mcp/index_manager.h:4:0: information: Include file: <sys/types.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/types.h>
+^
+mcp/index_manager.c:3:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+mcp/index_manager.c:4:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+mcp/index_manager.c:5:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+mcp/index_manager.c:6:0: information: Include file: <unistd.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <unistd.h>
+^
+mcp/index_manager.c:7:0: information: Include file: <fcntl.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <fcntl.h>
+^
+mcp/index_manager.c:8:0: information: Include file: <signal.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <signal.h>
+^
+mcp/index_manager.c:9:0: information: Include file: <sys/stat.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/stat.h>
+^
+mcp/index_manager.c:10:0: information: Include file: <sys/wait.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/wait.h>
+^
+mcp/mcp_server.c:2:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+mcp/mcp_server.c:3:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+mcp/mcp_server.c:4:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+mcp/mcp_server.c:5:0: information: Include file: <unistd.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <unistd.h>
+^
+mcp/mcp_server.c:6:0: information: Include file: <fcntl.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <fcntl.h>
+^
+mcp/mcp_server.c:7:0: information: Include file: <json-c/json.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <json-c/json.h> // cppcheck-suppress missingIncludeSystem
+^
+mcp/tools.h:4:0: information: Include file: <json-c/json.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <json-c/json.h> // cppcheck-suppress missingIncludeSystem
+^
+mcp/mcp_server.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+pycoolctl/class.h:3:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+pycoolctl/method.h:3:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+pycoolctl/list.h:3:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+pycoolctl/info.h:3:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+mcp/tools.c:10:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+mcp/tools.c:11:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+mcp/tools.c:12:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+mcp/tools.c:13:0: information: Include file: <json-c/json.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <json-c/json.h> // cppcheck-suppress missingIncludeSystem
+^
+mcp/tools.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+pycoolctl/clean.c:4:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+pycoolctl/clean.c:5:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+pycoolctl/clean.c:6:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+pycoolctl/clean.c:7:0: information: Include file: <signal.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <signal.h>
+^
+pycoolctl/clean.c:8:0: information: Include file: <unistd.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <unistd.h>
+^
+pycoolctl/main.c:1:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+pycoolctl/main.c:2:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+pycoolctl/main.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+pycoolctl/stop.c:4:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+pycoolctl/stop.c:5:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+pycoolctl/stop.c:6:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+pycoolctl/stop.c:7:0: information: Include file: <signal.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <signal.h>
+^
+pycoolctl/stop.c:8:0: information: Include file: <unistd.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <unistd.h>
+^
+http/http.c:2:0: information: Include file: <stdio.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdio.h>
+^
+http/http.c:3:0: information: Include file: <stdlib.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <stdlib.h>
+^
+http/http.c:4:0: information: Include file: <string.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <string.h>
+^
+http/http.c:5:0: information: Include file: <unistd.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <unistd.h>
+^
+http/http.c:6:0: information: Include file: <ctype.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <ctype.h>
+^
+http/http.c:7:0: information: Include file: <errno.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <errno.h>
+^
+http/http.c:8:0: information: Include file: <fcntl.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <fcntl.h>
+^
+http/http.c:9:0: information: Include file: <signal.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <signal.h>
+^
+http/http.c:10:0: information: Include file: <sys/socket.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/socket.h>
+^
+http/http.c:11:0: information: Include file: <sys/select.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <sys/select.h>
+^
+http/http.c:12:0: information: Include file: <netinet/in.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <netinet/in.h>
+^
+http/http.c:13:0: information: Include file: <arpa/inet.h> not found. Please note: Cppcheck does not need standard library headers to get proper results. [missingIncludeSystem]
+#include <arpa/inet.h>
+^
+http/http.c:0:0: information: Limiting analysis of branches. Use --check-level=exhaustive to analyze all branches. [normalCheckLevelMaxBranches]
+
+^
+index/core.c:153:0: style: The function 'index_add_type' is never used. [unusedFunction]
+int index_add_type(sqlite3 *db, sqlite3_int64 symbol_id, const char *type_name) // cppcheck-suppress unusedFunction
+^
+mcp/index_manager.c:58:0: style: The function 'pycool_path' is never used. [unusedFunction]
+const char *pycool_path(void) { return pycool_path_buf; } // cppcheck-suppress unusedFunction
+^
+src/ast.c:64:0: style: The function 'ast_class_names' is never used. [unusedFunction]
+int ast_class_names(Ast *ast, char ***out_names) // cppcheck-suppress unusedFunction
+^
+src/dbpath.c:9:0: style: The function 'pycool_resolve_db' is never used. [unusedFunction]
+char *pycool_resolve_db(void) // cppcheck-suppress unusedFunction
+^
+src/registry.c:45:0: style: The function 'registry_dir' is never used. [unusedFunction]
+char *registry_dir(void) // cppcheck-suppress unusedFunction
+^
+src/registry.c:127:0: style: The function 'registry_stop' is never used. [unusedFunction]
+int registry_stop(pid_t pid) // cppcheck-suppress unusedFunction
+^
+index/core.c:74:0: style: The function 'index_open' should have static linkage since it is not used outside of its translation unit. [staticFunction]
+int index_open(const char *path, sqlite3 **db) // cppcheck-suppress staticFunction
+^
+mcp/tools.c:39:0: style: The function 'tool_result' should have static linkage since it is not used outside of its translation unit. [staticFunction]
+json_object *tool_result(const char *text, int is_error) // cppcheck-suppress staticFunction
+^
+src/ast.c:45:0: style: The function 'ast_class_count' should have static linkage since it is not used outside of its translation unit. [staticFunction]
+int ast_class_count(Ast *ast) // cppcheck-suppress staticFunction
+^
+src/extract.c:11:0: style: The function 'extract_assign_targets' should have static linkage since it is not used outside of its translation unit. [staticFunction]
+void extract_assign_targets(PyObject *target, Ctx *ctx, int line) // cppcheck-suppress staticFunction
+^
+nofile:0:0: information: Active checkers: 116/856 (use --checkers-report=<filename> to see details) [checkersReport]
+

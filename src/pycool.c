@@ -10,6 +10,7 @@
 #include "registry.h"
 #include "ignore.h"
 #include <signal.h>
+// cppcheck-suppress missingIncludeSystem
 #include <Python.h>
 #include <stdio.h>
 #include <stdlib.h>

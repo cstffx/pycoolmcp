@@ -71,7 +71,7 @@ static const char *SCHEMA =
 "CREATE INDEX IF NOT EXISTS idx_refs_symbol ON refs(symbol_id);"
 "CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);";
 
-int index_open(const char *path, sqlite3 **db)
+int index_open(const char *path, sqlite3 **db) // cppcheck-suppress staticFunction
 {
 	if (sqlite3_open(path, db) != SQLITE_OK) return -1;
 	sqlite3_busy_timeout(*db, 5000);
@@ -150,7 +150,7 @@ int index_add_ref(sqlite3 *db, sqlite3_int64 symbol_id, sqlite3_int64 file_id, i
 	return (rc == SQLITE_DONE) ? 0 : -1;
 }
 
-int index_add_type(sqlite3 *db, sqlite3_int64 symbol_id, const char *type_name)
+int index_add_type(sqlite3 *db, sqlite3_int64 symbol_id, const char *type_name) // cppcheck-suppress unusedFunction
 {
 	const char *sql = "INSERT INTO types(symbol_id,type_name) VALUES(?,?);";
 	sqlite3_stmt *stmt;

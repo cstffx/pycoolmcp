@@ -62,7 +62,7 @@ int valid_simple(const char *s)
 	for (size_t i = 0; i < len; i++) {
 		unsigned char c = (unsigned char)s[i];
 		if (c < 0x20 || c == 0x7f) return 0;
-		if (c == ' ' || c == '\t' || c == '\r' || c == '\n') return 0;
+		if (c == ' ') return 0;
 	}
 	return 1;
 }

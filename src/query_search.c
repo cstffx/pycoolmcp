@@ -17,6 +17,7 @@ static int match_text(const char *hay, const char *needle, int regex_mode, regex
 	}
 	char *h = strdup(hay);
 	char *n = strdup(needle);
+	if (!h || !n) { free(h); free(n); return 0; }
 	for (char *p = h; *p; p++) *p = (char)tolower((unsigned char)*p);
 	for (char *p = n; *p; p++) *p = (char)tolower((unsigned char)*p);
 	int r = strstr(h, n) != NULL;
@@ -114,11 +115,11 @@ int search_command(int argc, char **argv, FILE *out)
 			"WHERE 1=1");
 		char kindclause[256] = "";
 		if (!(want_class && want_function && want_variable)) {
-			int first = 1;
+			int need_comma = 0;
 			strcat(kindclause, " AND s.kind IN (");
-			if (want_class) { if (!first) strcat(kindclause, ","); strcat(kindclause, "'class'"); first=0; }
-			if (want_function) { if (!first) strcat(kindclause, ","); strcat(kindclause, "'function'"); first=0; }
-			if (want_variable) { if (!first) strcat(kindclause, ","); strcat(kindclause, "'variable'"); first=0; }
+			if (want_class) { if (need_comma) strcat(kindclause, ","); strcat(kindclause, "'class'"); need_comma = 1; }
+			if (want_function) { if (need_comma) strcat(kindclause, ","); strcat(kindclause, "'function'"); need_comma = 1; }
+			if (want_variable) { if (need_comma) strcat(kindclause, ","); strcat(kindclause, "'variable'"); need_comma = 1; }
 			strcat(kindclause, ")");
 		}
 		strcat(sql, kindclause);
@@ -137,7 +138,7 @@ int search_command(int argc, char **argv, FILE *out)
 				const char *p = (const char *)sqlite3_column_text(stmt, 3);
 				const char *doc = (const char *)sqlite3_column_text(stmt, 4);
 				if (!match_text(nm, query, regex_mode, &re) && !match_text(doc, query, regex_mode, &re)) continue;
-				if (nrows == caprows) { caprows = caprows ? caprows*2 : 64; rows = realloc(rows, caprows*sizeof(Row)); }
+				if (nrows == caprows) { caprows = caprows ? caprows*2 : 64; Row *tmp = realloc(rows, caprows*sizeof(Row)); if (tmp) rows = tmp; }
 				rows[nrows].path = strdup(p ? p : "");
 				rows[nrows].line = ln;
 				rows[nrows].kind = strdup(k ? k : "");
@@ -169,7 +170,7 @@ int search_command(int argc, char **argv, FILE *out)
 				const char *p = (const char *)sqlite3_column_text(stmt, 2);
 				const char *doc = (const char *)sqlite3_column_text(stmt, 3);
 				if (!match_text(nm, query, regex_mode, &re) && !match_text(doc, query, regex_mode, &re)) continue;
-				if (nrows == caprows) { caprows = caprows ? caprows*2 : 64; rows = realloc(rows, caprows*sizeof(Row)); }
+				if (nrows == caprows) { caprows = caprows ? caprows*2 : 64; Row *tmp = realloc(rows, caprows*sizeof(Row)); if (tmp) rows = tmp; }
 				rows[nrows].path = strdup(p ? p : "");
 				rows[nrows].line = ln;
 				rows[nrows].kind = strdup("method");

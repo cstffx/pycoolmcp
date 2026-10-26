@@ -5,6 +5,7 @@
 #include "traverse.h"
 #include "../index/index.h"
 #include "ignore.h"
+// cppcheck-suppress missingIncludeSystem
 #include <Python.h>
 #include <stdio.h>
 #include <stdlib.h>

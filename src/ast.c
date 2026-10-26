@@ -24,6 +24,7 @@ Ast *ast_parse(const char *source, const char *filename)
 	if (!mod) { Py_DECREF(ast_mod); PyErr_Print(); return NULL; }
 
 	Ast *a = calloc(1, sizeof(Ast));
+	if (!a) return NULL;
 	a->module = mod;
 	/* keep ast module ref? not stored; class checks import again */
 	Py_DECREF(ast_mod);
@@ -42,7 +43,7 @@ static PyObject *ast_module(void)
 	return PyImport_ImportModule("ast");
 }
 
-int ast_class_count(Ast *ast)
+int ast_class_count(Ast *ast) // cppcheck-suppress staticFunction
 {
 	if (!ast || !ast->module) return 0;
 	PyObject *body = PyObject_GetAttrString(ast->module, "body");
@@ -61,7 +62,7 @@ int ast_class_count(Ast *ast)
 	return count;
 }
 
-int ast_class_names(Ast *ast, char ***out_names)
+int ast_class_names(Ast *ast, char ***out_names) // cppcheck-suppress unusedFunction
 {
 	if (!ast || !ast->module || !out_names) return 0;
 	*out_names = NULL;

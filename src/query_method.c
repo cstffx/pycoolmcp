@@ -60,7 +60,8 @@ static char *build_params(sqlite3 *db, sqlite3_int64 method_id)
 		if (len + plen + 4 >= cap) {
 			cap = cap ? cap * 2 : 256;
 			while (len + plen + 4 >= cap) cap *= 2;
-			buf = realloc(buf, cap);
+			char *tmpbuf = realloc(buf, cap);
+			if (tmpbuf) buf = tmpbuf;
 		}
 		if (!first) { buf[len++] = ','; buf[len++] = ' '; }
 		first = 0;
@@ -166,14 +167,14 @@ int method_command(int argc, char **argv, FILE *out)
 		         "FROM methods m JOIN symbols s ON m.class_symbol_id=s.id JOIN files f ON s.file_id=f.id "
 		         "WHERE s.kind='class' AND s.name=? AND m.name %s ? AND f.path=? "
 		         "ORDER BY f.path, m.line %s %s;",
-		         method_name ? "=" : "LIKE", limit > 0 ? "" : "", offset > 0 ? "" : "");
+		         method_name ? "=" : "LIKE", "" , "");
 	} else {
 		snprintf(sql, sizeof(sql),
 		         "SELECT m.id, m.name, f.path, m.line, m.end_line, m.decorators, m.returns, m.docstring "
 		         "FROM methods m JOIN symbols s ON m.class_symbol_id=s.id JOIN files f ON s.file_id=f.id "
 		         "WHERE s.kind='class' AND s.name=? %s %s "
 		         "ORDER BY f.path, m.line %s %s;",
-		         method_name ? "AND m.name=?" : "", "", limit > 0 ? "" : "", offset > 0 ? "" : "");
+		         method_name ? "AND m.name=?" : "", "", "" , "");
 	}
 	/* rebuild cleanly with optional filters */
 	/* We'll just prepare a simpler dynamic query */

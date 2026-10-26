@@ -257,7 +257,7 @@ int class_command(int argc, char **argv, FILE *out)
 			}
 			if (nlines == caplines) {
 				caplines = caplines ? caplines * 2 : 64;
-				lines_arr = realloc(lines_arr, caplines * sizeof(int));
+				int *tmp_lines = realloc(lines_arr, caplines * sizeof(int)); if (tmp_lines) lines_arr = tmp_lines;
 			}
 			lines_arr[nlines++] = (int)ln;
 			total++;

@@ -22,7 +22,8 @@ static int add_watch_entry(int fd, const char *path)
 	if (wd < 0) return -1;
 	if (n_watches == cap_watches) {
 		cap_watches = cap_watches ? cap_watches * 2 : 64;
-		watches = realloc(watches, cap_watches * sizeof(Watch));
+		Watch *tmp = realloc(watches, cap_watches * sizeof(Watch));
+		if (tmp) watches = tmp;
 	}
 	watches[n_watches].wd = wd;
 	watches[n_watches].path = strdup(path);

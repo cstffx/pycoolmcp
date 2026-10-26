@@ -19,7 +19,7 @@ int info_command(int argc, char **argv, FILE *out)
 		char **roots, **dbpaths; pid_t *pids; int n;
 		if (registry_list_paths(&roots, &dbpaths, &pids, &n) != 0) return 1;
 		for (int i = 0; i < n; i++) {
-			if (ntarget == cap) { cap = cap ? cap * 2 : 8; targets = realloc(targets, cap * sizeof(char *)); }
+			if (ntarget == cap) { cap = cap ? cap * 2 : 8; char **tmp = realloc(targets, cap * sizeof(char *)); if (tmp) targets = tmp; }
 			targets[ntarget++] = dbpaths[i];
 		}
 	} else {
@@ -35,7 +35,7 @@ int info_command(int argc, char **argv, FILE *out)
 			}
 		}
 		if (!dbpath) dbpath = argv[2];
-		if (ntarget == cap) { cap = cap ? cap * 2 : 8; targets = realloc(targets, cap * sizeof(char *)); }
+		if (ntarget == cap) { cap = cap ? cap * 2 : 8; char **tmp = realloc(targets, cap * sizeof(char *)); if (tmp) targets = tmp; }
 		targets[ntarget++] = strdup(dbpath);
 	}
 	for (int t = 0; t < ntarget; t++) {

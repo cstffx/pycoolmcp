@@ -3,12 +3,12 @@
 #include "ast.h"
 #include "../index/index.h"
 #include "ignore.h"
-#include <Python.h>
+#include <Python.h> // cppcheck-suppress missingIncludeSystem
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-void extract_assign_targets(PyObject *target, Ctx *ctx, int line)
+void extract_assign_targets(PyObject *target, Ctx *ctx, int line) // cppcheck-suppress staticFunction
 {
 	if (!target) return;
 	PyObject *cls = PyObject_GetAttrString(target, "__class__");
@@ -67,7 +67,7 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 						const char *bs = PyUnicode_AsUTF8(u);
 						if (bs) {
 							size_t add = strlen(bs) + 2;
-							if (len + add >= cap) { cap = (len+add)*2; bases = realloc(bases, cap); }
+							if (len + add >= cap) { cap = (len+add)*2; char *tmp = realloc(bases, cap); if (tmp) bases = tmp; }
 							if (len > 0) bases[len++] = ',';
 							strcpy(bases + len, bs);
 							len += strlen(bs);
@@ -137,7 +137,7 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 							}
 							if (sig) {
 								size_t add = strlen(sig) + 2;
-								if (len + add >= cap) { cap = (len+add)*2; methods = realloc(methods, cap); }
+								if (len + add >= cap) { cap = (len+add)*2; char *tmp = realloc(methods, cap); if (tmp) methods = tmp; }
 								if (len > 0) methods[len++] = ',';
 								strcpy(methods + len, sig);
 								len += strlen(sig);
@@ -333,7 +333,7 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 											if (asprintf(&sig, "%s(%s)", methname, largs_s ? largs_s : "") == -1) sig = NULL;
 											if (sig) {
 												size_t add = strlen(sig) + 2;
-												if (len + add >= cap) { cap = (len+add)*2; methods = realloc(methods, cap); }
+												if (len + add >= cap) { cap = (len+add)*2; char *tmp = realloc(methods, cap); if (tmp) methods = tmp; }
 												if (len > 0) methods[len++] = ',';
 												strcpy(methods + len, sig);
 												len += strlen(sig);
@@ -458,7 +458,7 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 											}
 											if (sig) {
 												size_t add = strlen(sig) + 2;
-												if (len + add >= cap) { cap = (len+add)*2; methods = realloc(methods, cap); }
+												if (len + add >= cap) { cap = (len+add)*2; char *tmp = realloc(methods, cap); if (tmp) methods = tmp; }
 												if (len > 0) methods[len++] = ',';
 												strcpy(methods + len, sig);
 												len += strlen(sig);
@@ -524,7 +524,7 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 						const char *ds = PyUnicode_AsUTF8(u);
 						if (ds) {
 							size_t add = strlen(ds) + 2;
-							if (len + add >= cap) { cap = (len+add)*2; decorators = realloc(decorators, cap); }
+							if (len + add >= cap) { cap = (len+add)*2; char *tmp = realloc(decorators, cap); if (tmp) decorators = tmp; }
 							if (len > 0) decorators[len++] = ',';
 							strcpy(decorators + len, ds);
 							len += strlen(ds);

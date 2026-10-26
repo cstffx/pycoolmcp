@@ -145,4 +145,9 @@ cppcheck:
 
 build: all
 
-.PHONY: all clean test pipeline cppcheck build
+# Deep analysis targets (optional)
+clang-analyze:
+	scan-build $(CC) $(CFLAGS) -o /tmp/scan_build_out $(SRC)/pycool_main.c $(LIB_SRCS) $(LDFLAGS) 2>/dev/null || true
+	@echo "Clang Static Analyzer results available in scan-build output"
+
+.PHONY: all clean test pipeline cppcheck build clang-analyze

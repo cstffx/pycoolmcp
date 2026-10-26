@@ -43,3 +43,4 @@ pycoolmcp
 *.buildinfo
 *.changes
 debian/*.substvars
+cppcheck.txt

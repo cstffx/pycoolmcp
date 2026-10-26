@@ -1,7 +1,6 @@
 #ifndef PYCOOLS_AST_H
 #define PYCOOLS_AST_H
 
-// cppcheck-suppress missingIncludeSystem
 #include <Python.h>
 
 typedef struct {

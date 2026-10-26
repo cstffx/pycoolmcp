@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <json-c/json.h> // cppcheck-suppress missingIncludeSystem
+#include <json-c/json.h>
 
 static const char *get_str(json_object *o, const char *key)
 {
@@ -36,7 +36,7 @@ static int get_int(json_object *o, const char *key, int def)
 	return def;
 }
 
-json_object *tool_result(const char *text, int is_error) // cppcheck-suppress staticFunction
+json_object *tool_result(const char *text, int is_error)
 {
 	json_object *content = json_object_new_array();
 	json_object *item = json_object_new_object();

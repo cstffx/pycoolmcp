@@ -4,7 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <json-c/json.h> // cppcheck-suppress missingIncludeSystem
+#include <json-c/json.h>
 
 #include "tools.h"
 #include "index_manager.h"

@@ -1,5 +1,4 @@
 #include "traverse.h"
-// cppcheck-suppress missingIncludeSystem
 #include <Python.h>
 #include <stdlib.h>
 #include <string.h>

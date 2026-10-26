@@ -3,12 +3,12 @@
 #include "ast.h"
 #include "../index/index.h"
 #include "ignore.h"
-#include <Python.h> // cppcheck-suppress missingIncludeSystem
+#include <Python.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-void extract_assign_targets(PyObject *target, Ctx *ctx, int line) // cppcheck-suppress staticFunction
+void extract_assign_targets(PyObject *target, Ctx *ctx, int line)
 {
 	if (!target) return;
 	PyObject *cls = PyObject_GetAttrString(target, "__class__");

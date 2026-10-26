@@ -43,7 +43,7 @@ static PyObject *ast_module(void)
 	return PyImport_ImportModule("ast");
 }
 
-int ast_class_count(Ast *ast) // cppcheck-suppress staticFunction
+int ast_class_count(Ast *ast)
 {
 	if (!ast || !ast->module) return 0;
 	PyObject *body = PyObject_GetAttrString(ast->module, "body");
@@ -62,7 +62,7 @@ int ast_class_count(Ast *ast) // cppcheck-suppress staticFunction
 	return count;
 }
 
-int ast_class_names(Ast *ast, char ***out_names) // cppcheck-suppress unusedFunction
+int ast_class_names(Ast *ast, char ***out_names)
 {
 	if (!ast || !ast->module || !out_names) return 0;
 	*out_names = NULL;

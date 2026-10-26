@@ -438,7 +438,6 @@ int class_command(int argc, char **argv, FILE *out)
 				else if (*p == 'H') fprintf(out, "types=n/a");
 				else if (*p == 'I') fprintf(out, "refs=n/a");
 				else if (*p == 'J') fprintf(out, "decorators=%s", decs ? decs : "");
-				else if (*p == 'K') fprintf(out, "module=%s", path ? path : "");
 				else if (*p == 'L') fprintf(out, "end_line=%ld", end_line);
 			}
 			fprintf(out, "\n");

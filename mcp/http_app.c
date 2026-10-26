@@ -133,7 +133,6 @@ static void run_query(int client, const char *subcmd, const char *query)
 	while (!child_done) {
 		if (time(NULL) - start > CHILD_TIMEOUT) {
 			kill(pid, SIGKILL);
-			child_done = 1;
 			break;
 		}
 		fd_set rfds;

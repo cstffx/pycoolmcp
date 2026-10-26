@@ -119,7 +119,7 @@ void scan_dir(const char *root, sqlite3 *db)
 		if (errno != ENOENT) fprintf(stderr, "opendir %s: %s\n", root, strerror(errno));
 		return;
 	}
-	struct dirent *ent;
+	const struct dirent *ent;
 	while ((ent = readdir(d)) != NULL) {
 		if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) continue;
 		size_t plen = strlen(root) + strlen(ent->d_name) + 2;

@@ -115,11 +115,10 @@ int search_command(int argc, char **argv, FILE *out)
 			"WHERE 1=1");
 		char kindclause[256] = "";
 		if (!(want_class && want_function && want_variable)) {
-			int need_comma = 0;
 			strcat(kindclause, " AND s.kind IN (");
-			if (want_class) { if (need_comma) strcat(kindclause, ","); strcat(kindclause, "'class'"); need_comma = 1; }
-			if (want_function) { if (need_comma) strcat(kindclause, ","); strcat(kindclause, "'function'"); need_comma = 1; }
-			if (want_variable) { if (need_comma) strcat(kindclause, ","); strcat(kindclause, "'variable'"); need_comma = 1; }
+			if (want_class) { if (kindclause[strlen(kindclause)-1] != '(') strcat(kindclause, ","); strcat(kindclause, "'class'"); }
+			if (want_function) { if (kindclause[strlen(kindclause)-1] != '(') strcat(kindclause, ","); strcat(kindclause, "'function'"); }
+			if (want_variable) { if (kindclause[strlen(kindclause)-1] != '(') strcat(kindclause, ","); strcat(kindclause, "'variable'"); }
 			strcat(kindclause, ")");
 		}
 		strcat(sql, kindclause);

@@ -88,7 +88,7 @@ int registry_list_paths(char ***roots, char ***dbpaths, pid_t **pids, int *count
 	DIR *d = opendir(dir);
 	if (!d) { free(dir); return -1; }
 	int cap = 0;
-	struct dirent *ent;
+	const struct dirent *ent;
 	while ((ent = readdir(d)) != NULL) {
 		if (ent->d_name[0] == '.') continue;
 		size_t L = strlen(ent->d_name);

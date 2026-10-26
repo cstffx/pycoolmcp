@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-char *pycool_resolve_db(void)
+char *pycool_resolve_db(void) // cppcheck-suppress unusedFunction
 {
 	const char *env = getenv("PYCOOL_DB");
 	if (env && env[0]) return strdup(env);
@@ -15,7 +15,7 @@ char *pycool_resolve_db(void)
 	if (!getcwd(cur, sizeof(cur))) return NULL;
 
 	for (;;) {
-		char path[4096];
+		char path[8192];
 		snprintf(path, sizeof(path), "%s/.pycool/index.db", cur);
 		struct stat st;
 		if (stat(path, &st) == 0 && S_ISREG(st.st_mode)) return strdup(path);

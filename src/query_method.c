@@ -6,7 +6,6 @@
 #include <string.h>
 #include <sqlite3.h>
 #include "../index/core.h"
-#include "dbpath.h"
 
 static void print_json_str(FILE *out, const char *s)
 {
@@ -103,6 +102,8 @@ int method_command(int argc, char **argv, FILE *out)
 	int json_mode = 0;
 	int body_mode = 0;
 	int limit = 0;
+	const char *lines = NULL;
+	int max_lines = 0;
 	int offset = 0;
 	for (int i = 2; i < argc; i++) {
 		if (strcmp(argv[i], "--db") == 0 && i + 1 < argc) dbpath = argv[++i];
@@ -110,6 +111,8 @@ int method_command(int argc, char **argv, FILE *out)
 		else if (strcmp(argv[i], "--file") == 0 && i + 1 < argc) file = argv[++i];
 		else if (strcmp(argv[i], "--json") == 0) json_mode = 1;
 		else if (strcmp(argv[i], "--body") == 0) body_mode = 1;
+		else if (strcmp(argv[i], "--lines") == 0 && i + 1 < argc) lines = argv[++i];
+		else if (strcmp(argv[i], "--max-lines") == 0 && i + 1 < argc) max_lines = atoi(argv[++i]);
 		else if (strcmp(argv[i], "--limit") == 0 && i + 1 < argc) limit = atoi(argv[++i]);
 		else if (strcmp(argv[i], "--offset") == 0 && i + 1 < argc) offset = atoi(argv[++i]);
 		else if (!class_name) class_name = argv[i];
@@ -119,18 +122,22 @@ int method_command(int argc, char **argv, FILE *out)
 		fprintf(stderr, "usage: pycoolctl method <Class> [Method] [--file PATH] [--body] [--json] [--limit N] [--offset N] [--pid PID] [--db PATH]\n");
 		return 2;
 	}
-	if (!dbpath) dbpath = pycool_resolve_db();
+	char *resolved_db = NULL;
 	if (!dbpath) {
-		char **roots, **dbpaths; pid_t *pids; int n;
-		if (registry_list_paths(&roots, &dbpaths, &pids, &n) != 0 || n == 0) {
-			fprintf(stderr, "no running instance and no default db; pass --db PATH\n");
-			return 1;
-		}
 		if (pidstr) {
+			char **roots, **dbpaths; pid_t *pids; int n;
+			if (registry_list_paths(&roots, &dbpaths, &pids, &n) != 0 || n == 0) {
+				fprintf(stderr, "no running instance; pass --db PATH\n");
+				return 1;
+			}
 			pid_t target = (pid_t)atoi(pidstr);
 			for (int i = 0; i < n; i++) if (pids[i] == target) { dbpath = dbpaths[i]; break; }
 			if (!dbpath) { fprintf(stderr, "pid %s not found\n", pidstr); return 1; }
-		} else dbpath = dbpaths[0];
+		} else {
+			resolved_db = registry_default_db();
+			if (resolved_db) dbpath = resolved_db;
+			else { fprintf(stderr, "no running instance and no default db; pass --db PATH or set PYCOOL_DB\n"); return 1; }
+		}
 	}
 	sqlite3 *db;
 	if (sqlite3_open(dbpath, &db) != SQLITE_OK) {
@@ -143,6 +150,7 @@ int method_command(int argc, char **argv, FILE *out)
 			fprintf(out, "error: schema mismatch (db=v%d, code=v%d)\n", sv, PYCOOL_SCHEMA_VERSION);
 			fprintf(out, "remedy: rebuild index with: pycool <root> %s\n", dbpath ? dbpath : "(db)");
 			sqlite3_close(db);
+			free(resolved_db);
 			return 1;
 		}
 		if (sv == -1) {
@@ -222,7 +230,17 @@ int method_command(int argc, char **argv, FILE *out)
 		char *params = build_params(db, mid);
 		if (body_mode) {
 			if (mend <= 0) mend = mline;
-			print_class_body(out, mpath, mline, mend);
+			long rstart = mline, rend = mend;
+			if (lines) {
+				char buf[64]; strncpy(buf, lines, sizeof(buf)-1); buf[sizeof(buf)-1]='\0';
+				char *comma = strchr(buf, ',');
+				if (comma) { *comma='\0'; rstart = atoi(buf); rend = atoi(comma+1); }
+				else { rstart = atoi(buf); rend = rstart; }
+			}
+			if (rstart < mline) rstart = mline;
+			if (rend > mend) rend = mend;
+			if (max_lines > 0 && rend - rstart + 1 > max_lines) rend = rstart + max_lines - 1;
+			print_class_body(out, mpath, rstart, rend);
 			free(params);
 			continue;
 		}
@@ -257,5 +275,6 @@ int method_command(int argc, char **argv, FILE *out)
 	}
 	sqlite3_finalize(stmt);
 	sqlite3_close(db);
+	free(resolved_db);
 	return 0;
 }

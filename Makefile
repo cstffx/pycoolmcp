@@ -13,7 +13,7 @@ LIB_SRCS := $(SRC)/ast.c $(SRC)/traverse.c $(SRC)/extract.c $(SRC)/scan.c \
             $(SRC)/ignore.c $(SRC)/observer.c $(SRC)/registry.c $(SRC)/pycool.c \
             $(SRC)/dbpath.c \
             $(SRC)/query_class.c $(SRC)/query_method.c $(SRC)/query_list.c $(SRC)/query_info.c \
-            $(SRC)/query_reindex.c \
+            $(SRC)/query_reindex.c $(SRC)/query_search.c \
             $(INDEX)/core.c $(INDEX)/class.c $(INDEX)/method.c
 
 LIB_OBJS := $(LIB_SRCS:.c=.o)
@@ -92,7 +92,7 @@ pycool: $(SRC)/pycool_main.c libpycool.a
 	$(CC) $(CFLAGS) -o $@ $(SRC)/pycool_main.c libpycool.a $(LDFLAGS)
 
 # --- pycoolctl cli ---
-PYCOOLCTL_SRCS := $(CLI)/main.c $(SRC)/query_list.c $(SRC)/query_info.c $(SRC)/query_class.c $(SRC)/query_method.c \
+PYCOOLCTL_SRCS := $(CLI)/main.c $(SRC)/query_list.c $(SRC)/query_info.c $(SRC)/query_class.c $(SRC)/query_method.c $(SRC)/query_search.c \
                   $(CLI)/stop.c $(CLI)/clean.c $(SRC)/query_reindex.c
 
 bin/pycoolctl: $(PYCOOLCTL_SRCS) libpycool.a
@@ -115,48 +115,21 @@ test_ast: $(TESTS)/test_ast.c $(SRC)/ast.o
 test_traverse: $(TESTS)/test_traverse.c $(SRC)/ast.o $(SRC)/traverse.o
 	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_traverse.c $(SRC)/ast.o $(SRC)/traverse.o $(LDFLAGS)
 
-test_index: $(TESTS)/test_index.c $(INDEX)/core.o $(INDEX)/class.o $(INDEX)/method.o
-	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_index.c $(INDEX)/core.o $(INDEX)/class.o $(INDEX)/method.o -lsqlite3
+test_index: $(TESTS)/test_index.c $(INDEX)/core.o
+	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_index.c $(INDEX)/core.o -lsqlite3
 
-test_dbpath: $(TESTS)/test_dbpath.c $(SRC)/dbpath.o
-	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_dbpath.c $(SRC)/dbpath.o
-
-test_reindex: $(TESTS)/test_reindex.c $(SRC)/query_reindex.o $(SRC)/registry.o
-	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_reindex.c $(SRC)/query_reindex.o $(SRC)/registry.o
-
-test_list: $(TESTS)/test_list.c $(SRC)/query_list.o $(SRC)/registry.o
-	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_list.c $(SRC)/query_list.o $(SRC)/registry.o
-
-test_info: $(TESTS)/test_info.c $(SRC)/query_info.o $(SRC)/registry.o $(INDEX)/core.o
-	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_info.c $(SRC)/query_info.o $(SRC)/registry.o $(INDEX)/core.o -lsqlite3
-
-test_clean: $(TESTS)/test_clean.c pycoolctl/clean.c $(SRC)/registry.o
-	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_clean.c pycoolctl/clean.c $(SRC)/registry.o $(LDFLAGS)
-
-test_stop: $(TESTS)/test_stop.c pycoolctl/stop.c $(SRC)/registry.o
-	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_stop.c pycoolctl/stop.c $(SRC)/registry.o $(LDFLAGS)
-
-test_extract: $(TESTS)/test_extract.c $(SRC)/extract.o $(SRC)/scan.o $(SRC)/ast.o $(SRC)/traverse.o $(SRC)/ignore.o $(SRC)/registry.o $(SRC)/observer.o $(SRC)/pycool.o $(INDEX)/core.o $(INDEX)/class.o $(INDEX)/method.o
-	$(CC) $(CFLAGS) -Isrc -Iindex -o $@ $(TESTS)/test_extract.c $(SRC)/extract.o $(SRC)/scan.o $(SRC)/ast.o $(SRC)/traverse.o $(SRC)/ignore.o $(SRC)/registry.o $(SRC)/observer.o $(SRC)/pycool.o $(INDEX)/core.o $(INDEX)/class.o $(INDEX)/method.o $(LDFLAGS) -lpthread -ldl -lutil -lm
+test_overlap: $(TESTS)/test_overlap.c $(SRC)/registry.o
+	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_overlap.c $(SRC)/registry.o $(LDFLAGS)
 
 test_ignore: $(TESTS)/test_ignore.c $(SRC)/ignore.o
 	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_ignore.c $(SRC)/ignore.o $(LDFLAGS)
 
-test_observer: $(TESTS)/test_observer.c $(SRC)/observer.o
-	$(CC) $(CFLAGS) -Isrc -o $@ $(TESTS)/test_observer.c $(SRC)/observer.o -lpthread $(LDFLAGS)
-
-test_class: $(TESTS)/test_class.c $(SRC)/query_class.c $(SRC)/dbpath.o $(SRC)/registry.o $(INDEX)/core.o $(INDEX)/class.o $(INDEX)/method.o
-	$(CC) $(CFLAGS) -Isrc -Iindex -Ipycoolctl -o $@ $(TESTS)/test_class.c $(SRC)/query_class.c $(SRC)/dbpath.o $(SRC)/registry.o $(INDEX)/core.o $(INDEX)/class.o $(INDEX)/method.o --coverage -lsqlite3 -lpython3.13
-
-test_method: $(TESTS)/test_method.c $(SRC)/query_method.c $(SRC)/dbpath.o $(SRC)/registry.o $(INDEX)/core.o $(INDEX)/class.o $(INDEX)/method.o
-	$(CC) $(CFLAGS) -Isrc -Iindex -Ipycoolctl -o $@ $(TESTS)/test_method.c $(SRC)/query_method.c $(SRC)/dbpath.o $(SRC)/registry.o $(INDEX)/core.o $(INDEX)/class.o $(INDEX)/method.o --coverage -lsqlite3 -lpython3.13
-
-test_registry: $(TESTS)/test_registry.c $(SRC)/registry.o
-	$(CC) $(CFLAGS) -Isrc -o $@ $(TESTS)/test_registry.c $(SRC)/registry.o --coverage -lpthread
+test_incremental: $(TESTS)/test_incremental.c libpycool.a
+	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_incremental.c libpycool.a $(LDFLAGS) -lpthread -ldl -lutil -lm
 
 clean:
-	rm -f *.o *.a *.so *.so.* test_ast test_traverse test_index test_dbpath test_reindex test_list test_info test_clean test_stop test_extract test_ignore test_observer test_class test_method test_registry pycool http_server pycoolmcp *.gcda *.gcno *.gcov
-	rm -rf bin $(SRC)/*.o $(INDEX)/*.o $(SRC)/*.gcda $(SRC)/*.gcno $(INDEX)/*.gcda $(INDEX)/*.gcno
+	rm -f *.o *.a *.so *.so.* test_ast test_traverse test_index test_overlap test_ignore test_incremental pycool http_server pycoolmcp
+	rm -rf bin $(SRC)/*.o $(INDEX)/*.o
 
 release:
 	$(MAKE) clean

@@ -70,7 +70,11 @@ void reindex_file(const char *path, sqlite3 *db)
 		return;
 	}
 	struct stat st;
-	if (stat(path, &st) != 0) return;
+	if (stat(path, &st) != 0) {
+		/* file gone: drop stale entry */
+		index_remove_file(db, path);
+		return;
+	}
 	if (!S_ISREG(st.st_mode)) return;
 
 	char hash[32];
@@ -78,8 +82,10 @@ void reindex_file(const char *path, sqlite3 *db)
 
 	if (index_file_changed(db, path, st.st_mtime, hash) == 0) return;
 
-	index_begin(db);
+	/* remove previous entry (manages its own transaction) */
 	index_remove_file(db, path);
+
+	if (index_begin(db) != 0) return;
 
 	sqlite3_int64 file_id;
 	if (index_upsert_file(db, path, st.st_mtime, hash, &file_id) != 0) {
@@ -123,6 +129,12 @@ void scan_dir(const char *root, sqlite3 *db)
 		struct stat st;
 		if (lstat(path, &st) != 0) { free(path); continue; }
 		if (S_ISDIR(st.st_mode)) {
+			if (strcmp(ent->d_name, "tests") == 0 || strcmp(ent->d_name, "vendor") == 0 ||
+			    strcmp(ent->d_name, ".venv") == 0 || strcmp(ent->d_name, "__pycache__") == 0 ||
+			    strcmp(ent->d_name, ".git") == 0 || strcmp(ent->d_name, "node_modules") == 0) {
+				free(path);
+				continue;
+			}
 			scan_dir(path, db);
 			free(path);
 		} else if (S_ISREG(st.st_mode)) {

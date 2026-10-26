@@ -3,6 +3,7 @@
 #include "index_manager.h"
 #include "../pycoolctl/class.h"
 #include "../pycoolctl/method.h"
+#include "../pycoolctl/search.h"
 #include "../pycoolctl/list.h"
 #include "../pycoolctl/info.h"
 #include "../pycoolctl/reindex.h"
@@ -88,6 +89,9 @@ void handle_tools_list(json_object *id)
 	json_object *s2 = schema_obj("{\"type\":\"object\",\"properties\":{\"class\":{\"type\":\"string\"},\"method\":{\"type\":\"string\"},\"db\":{\"type\":\"string\"},\"file\":{\"type\":\"string\"},\"pid\":{\"type\":\"integer\"},\"body\":{\"type\":\"boolean\"},\"json\":{\"type\":\"boolean\"},\"limit\":{\"type\":\"integer\"},\"offset\":{\"type\":\"integer\"}},\"required\":[\"class\"]}");
 	json_object_array_add(tools, make_tool("query_method", "Query methods of a class", s2));
 
+	json_object *s_search = schema_obj("{\"type\":\"object\",\"properties\":{\"query\":{\"type\":\"string\"},\"regex\":{\"type\":\"boolean\"},\"kind\":{\"type\":\"string\"},\"file\":{\"type\":\"string\"},\"db\":{\"type\":\"string\"},\"pid\":{\"type\":\"integer\"},\"limit\":{\"type\":\"integer\"},\"offset\":{\"type\":\"integer\"}},\"required\":[\"query\"]}");
+	json_object_array_add(tools, make_tool("search_symbols", "Search symbols by name/docstring", s_search));
+
 	json_object *s3 = schema_obj("{\"type\":\"object\",\"properties\":{\"dbsize\":{\"type\":\"boolean\"}}}");
 	json_object_array_add(tools, make_tool("list_instances", "List running pycool instances", s3));
 
@@ -103,6 +107,9 @@ void handle_tools_list(json_object *id)
 	json_object *s7 = schema_obj("{\"type\":\"object\",\"properties\":{}}");
 	json_object_array_add(tools, make_tool("index_stop", "Stop background pycool indexer", s7));
 
+	json_object *s8 = schema_obj("{\"type\":\"object\",\"properties\":{\"op\":{\"type\":\"string\"},\"args\":{\"type\":\"object\"}},\"required\":[\"op\"]}");
+	json_object_array_add(tools, make_tool("pycool", "Consolidated pycool command (op,args)", s8));
+
 	json_object *result = json_object_new_object();
 	json_object_object_add(result, "tools", tools);
 	send_response(id, result, NULL);
@@ -114,6 +121,22 @@ void handle_tools_call(json_object *id, json_object *params)
 	json_object *args = NULL;
 	json_object_object_get_ex(params, "arguments", &args);
 	if (!args) args = json_object_new_object();
+
+	if (name && strcmp(name, "pycool") == 0) {
+		const char *op = get_str(args, "op");
+		json_object *inner = NULL;
+		json_object_object_get_ex(args, "args", &inner);
+		if (!op) {
+			json_object *err = json_object_new_object();
+			json_object_object_add(err, "code", json_object_new_int(-32602));
+			json_object_object_add(err, "message", json_object_new_string("missing op"));
+			send_response(id, NULL, err);
+			return;
+		}
+		if (!inner) inner = json_object_new_object();
+		name = op;
+		args = inner;
+	}
 
 	if (!name) {
 		json_object *err = json_object_new_object();
@@ -180,6 +203,13 @@ void handle_tools_call(json_object *id, json_object *params)
 		const char *info = get_str(args, "info");
 		if (info) { argv[argc++] = "--info"; argv[argc++] = (char *)info; }
 		if (get_bool(args, "body", 0)) argv[argc++] = "--body";
+		const char *lines = get_str(args, "lines");
+		if (lines) { argv[argc++] = "--lines"; argv[argc++] = (char *)lines; }
+		int max_lines = get_int(args, "max_lines", 0);
+		if (max_lines > 0) {
+			static char mlbuf[32]; snprintf(mlbuf, sizeof(mlbuf), "%d", max_lines);
+			argv[argc++] = "--max-lines"; argv[argc++] = mlbuf;
+		}
 		if (get_bool(args, "refs", 0)) argv[argc++] = "--refs";
 		if (get_bool(args, "json", 0)) argv[argc++] = "--json";
 		if (get_bool(args, "compact", 0)) argv[argc++] = "--compact";
@@ -218,7 +248,48 @@ void handle_tools_call(json_object *id, json_object *params)
 			argv[argc++] = "--pid"; argv[argc++] = pidbuf;
 		}
 		if (get_bool(args, "body", 0)) argv[argc++] = "--body";
+		const char *mlines = get_str(args, "lines");
+		if (mlines) { argv[argc++] = "--lines"; argv[argc++] = (char *)mlines; }
+		int mmax = get_int(args, "max_lines", 0);
+		if (mmax > 0) {
+			static char mmbuf[32]; snprintf(mmbuf, sizeof(mmbuf), "%d", mmax);
+			argv[argc++] = "--max-lines"; argv[argc++] = mmbuf;
+		}
 		if (get_bool(args, "json", 0)) argv[argc++] = "--json";
+		int limit = get_int(args, "limit", 0);
+		if (limit > 0) {
+			static char lbuf[32]; snprintf(lbuf, sizeof(lbuf), "%d", limit);
+			argv[argc++] = "--limit"; argv[argc++] = lbuf;
+		}
+		int offset = get_int(args, "offset", 0);
+		if (offset > 0) {
+			static char obuf[32]; snprintf(obuf, sizeof(obuf), "%d", offset);
+			argv[argc++] = "--offset"; argv[argc++] = obuf;
+		}
+	} else if (strcmp(name, "search_symbols") == 0) {
+		const char *q = get_str(args, "query");
+		if (!q) {
+			json_object *err = json_object_new_object();
+			json_object_object_add(err, "code", json_object_new_int(-32602));
+			json_object_object_add(err, "message", json_object_new_string("missing query"));
+			send_response(id, NULL, err);
+			return;
+		}
+		argv[argc++] = "search";
+		argv[argc++] = (char *)q;
+		if (get_bool(args, "regex", 0)) argv[argc++] = "--regex";
+		const char *kind = get_str(args, "kind");
+		if (kind) { argv[argc++] = "--kind"; argv[argc++] = (char *)kind; }
+		const char *file = get_str(args, "file");
+		if (file) { argv[argc++] = "--file"; argv[argc++] = (char *)file; }
+		const char *db = get_str(args, "db");
+		if (db) { argv[argc++] = "--db"; argv[argc++] = (char *)db; }
+		int pid = get_int(args, "pid", -1);
+		if (pid >= 0) {
+			static char pidbuf[32];
+			snprintf(pidbuf, sizeof(pidbuf), "%d", pid);
+			argv[argc++] = "--pid"; argv[argc++] = pidbuf;
+		}
 		int limit = get_int(args, "limit", 0);
 		if (limit > 0) {
 			static char lbuf[32]; snprintf(lbuf, sizeof(lbuf), "%d", limit);
@@ -257,6 +328,7 @@ void handle_tools_call(json_object *id, json_object *params)
 	int rc = 0;
 	if (strcmp(name, "query_class") == 0) rc = class_command(argc, argv, mem);
 	else if (strcmp(name, "query_method") == 0) rc = method_command(argc, argv, mem);
+	else if (strcmp(name, "search_symbols") == 0) rc = search_command(argc, argv, mem);
 	else if (strcmp(name, "list_instances") == 0) rc = list_command(argc, argv, mem);
 	else if (strcmp(name, "info") == 0) rc = info_command(argc, argv, mem);
 	else if (strcmp(name, "reindex") == 0) rc = reindex_command(argc, argv);
@@ -269,6 +341,21 @@ void handle_tools_call(json_object *id, json_object *params)
 	int is_error = (rc != 0);
 	if (buf && (strstr(buf, "cannot open") || strstr(buf, "no running instance") || strstr(buf, "not found") || strstr(buf, "schema mismatch")))
 		is_error = 1;
+	/* hard cap ~3KB with pagination hint */
+	if (buf) {
+		size_t blen = strlen(buf);
+		if (blen > 3000) {
+			size_t cap = 3000;
+			while (cap > 0 && buf[cap] != '\n') cap--;
+			if (cap == 0) cap = 3000;
+			buf[cap] = '\0';
+			char tail[128];
+			snprintf(tail, sizeof(tail), "\n… (+%zu more bytes; use limit/offset)\n", blen - cap);
+			size_t nlen = strlen(buf);
+			buf = realloc(buf, nlen + strlen(tail) + 1);
+			strcat(buf, tail);
+		}
+	}
 	json_object *result = tool_result(buf ? buf : "", is_error);
 	send_response(id, result, NULL);
 	free(buf);

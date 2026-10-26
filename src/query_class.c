@@ -74,6 +74,8 @@ int class_command(int argc, char **argv, FILE *out)
 	const char *file = NULL;
 	const char *pidstr = NULL;
 	const char *method = NULL;
+	const char *lines = NULL;
+	int max_lines = 0;
 	int json_mode = 0;
 	int compact_mode = 0;
 	int full_mode = 0;
@@ -96,6 +98,10 @@ int class_command(int argc, char **argv, FILE *out)
 			body_mode = 1;
 		} else if (strcmp(argv[i], "--method") == 0 && i + 1 < argc) {
 			method = argv[++i];
+		} else if (strcmp(argv[i], "--lines") == 0 && i + 1 < argc) {
+			lines = argv[++i];
+		} else if (strcmp(argv[i], "--max-lines") == 0 && i + 1 < argc) {
+			max_lines = atoi(argv[++i]);
 		} else if (strcmp(argv[i], "--refs") == 0) {
 			refs_mode = 1;
 		} else if (strcmp(argv[i], "--pid") == 0 && i + 1 < argc) {
@@ -111,13 +117,14 @@ int class_command(int argc, char **argv, FILE *out)
 		fprintf(stderr, "usage: pycoolctl class <Name> [--file PATH] [--info LETTERS] [--compact|--full|--verbose|--json|--body|--refs] [--pid PID] [--db PATH]\n");
 		return 2;
 	}
+	char *resolved_db = NULL;
 	if (!dbpath) {
-		char **roots, **dbpaths; pid_t *pids; int n;
-		if (registry_list_paths(&roots, &dbpaths, &pids, &n) != 0 || n == 0) {
-			fprintf(stderr, "no running instance; pass --db PATH\n");
-			return 1;
-		}
 		if (pidstr) {
+			char **roots, **dbpaths; pid_t *pids; int n;
+			if (registry_list_paths(&roots, &dbpaths, &pids, &n) != 0 || n == 0) {
+				fprintf(stderr, "no running instance; pass --db PATH\n");
+				return 1;
+			}
 			pid_t target = (pid_t)atoi(pidstr);
 			for (int i = 0; i < n; i++) {
 				if (pids[i] == target) { dbpath = dbpaths[i]; break; }
@@ -127,7 +134,12 @@ int class_command(int argc, char **argv, FILE *out)
 				return 1;
 			}
 		} else {
-			dbpath = dbpaths[0];
+			resolved_db = registry_default_db();
+			if (resolved_db) dbpath = resolved_db;
+			else {
+				fprintf(stderr, "no running instance and no default db; pass --db PATH or set PYCOOL_DB\n");
+				return 1;
+			}
 		}
 	}
 	sqlite3 *db;
@@ -141,12 +153,45 @@ int class_command(int argc, char **argv, FILE *out)
 			fprintf(out, "error: schema mismatch (db=v%d, code=v%d)\n", sv, PYCOOL_SCHEMA_VERSION);
 			fprintf(out, "remedy: rebuild index with: pycool <root> %s\n", dbpath ? dbpath : "(db)");
 			sqlite3_close(db);
+			free(resolved_db);
 			return 1;
 		}
 		if (sv == -1) {
 			char vsql[128];
 			snprintf(vsql, sizeof(vsql), "INSERT OR REPLACE INTO meta(key,value) VALUES('schema_version','%d');", PYCOOL_SCHEMA_VERSION);
 			sqlite3_exec(db, vsql, NULL, NULL, NULL);
+		}
+	}
+	/* ambiguous name filter */
+	if (name && !file && !refs_mode) {
+		char csql[512];
+		snprintf(csql, sizeof(csql),
+		         "SELECT count(DISTINCT f.path) FROM symbols s JOIN files f ON s.file_id=f.id WHERE s.kind='class' AND s.name=?;");
+		sqlite3_stmt *cstmt;
+		int nfiles = 0;
+		if (sqlite3_prepare_v2(db, csql, -1, &cstmt, NULL) == SQLITE_OK) {
+			sqlite3_bind_text(cstmt, 1, name, -1, SQLITE_TRANSIENT);
+			if (sqlite3_step(cstmt) == SQLITE_ROW) nfiles = sqlite3_column_int(cstmt, 0);
+			sqlite3_finalize(cstmt);
+		}
+		if (nfiles > 5) {
+			fprintf(out, "ambiguous: '%s' in %d files; specify --file\n", name, nfiles);
+			char lsql[512];
+			snprintf(lsql, sizeof(lsql),
+			         "SELECT f.path, s.line FROM symbols s JOIN files f ON s.file_id=f.id WHERE s.kind='class' AND s.name=? ORDER BY f.path;");
+			sqlite3_stmt *lstmt;
+			if (sqlite3_prepare_v2(db, lsql, -1, &lstmt, NULL) == SQLITE_OK) {
+				sqlite3_bind_text(lstmt, 1, name, -1, SQLITE_TRANSIENT);
+				while (sqlite3_step(lstmt) == SQLITE_ROW) {
+					const char *p = (const char *)sqlite3_column_text(lstmt, 0);
+					long ln = sqlite3_column_int64(lstmt, 1);
+					fprintf(out, "  %s:%ld\n", p ? p : "", ln);
+				}
+				sqlite3_finalize(lstmt);
+			}
+			sqlite3_close(db);
+			free(resolved_db);
+			return 0;
 		}
 	}
 	if (refs_mode) {
@@ -174,13 +219,70 @@ int class_command(int argc, char **argv, FILE *out)
 		}
 		sqlite3_bind_text(rstmt, 1, name, -1, SQLITE_TRANSIENT);
 		if (file) sqlite3_bind_text(rstmt, 2, file, -1, SQLITE_TRANSIENT);
+		/* compress refs: path:12,15,18-22 (+N) */
+		char curpath[4096] = "";
+		int *lines_arr = NULL;
+		int nlines = 0, caplines = 0;
+		int total = 0;
+
 		while (sqlite3_step(rstmt) == SQLITE_ROW) {
 			const char *p = (const char *)sqlite3_column_text(rstmt, 0);
 			long ln = sqlite3_column_int64(rstmt, 1);
-			fprintf(out, "%s:%ld\n", p ? p : "", ln);
+			if (!p) p = "";
+			if (strcmp(curpath, p) != 0) {
+				/* flush previous */
+				if (curpath[0] && nlines > 0) {
+					fprintf(out, "%s:", curpath);
+					/* compress */
+					int i = 0;
+					int first = 1;
+					while (i < nlines) {
+						int start = lines_arr[i];
+						int end = start;
+						while (i + 1 < nlines && lines_arr[i+1] == end + 1) { i++; end = lines_arr[i]; }
+						if (!first) fprintf(out, ",");
+						if (start == end) fprintf(out, "%d", start);
+						else fprintf(out, "%d-%d", start, end);
+						first = 0;
+						i++;
+					}
+					if (total > nlines) fprintf(out, " (+%d)", total - nlines);
+					fprintf(out, "\n");
+				}
+				strncpy(curpath, p, sizeof(curpath)-1);
+				curpath[sizeof(curpath)-1] = '\0';
+				nlines = 0;
+				total = 0;
+
+			}
+			if (nlines == caplines) {
+				caplines = caplines ? caplines * 2 : 64;
+				lines_arr = realloc(lines_arr, caplines * sizeof(int));
+			}
+			lines_arr[nlines++] = (int)ln;
+			total++;
 		}
+		if (curpath[0] && nlines > 0) {
+			fprintf(out, "%s:", curpath);
+			int i = 0;
+			int first = 1;
+			while (i < nlines) {
+				int start = lines_arr[i];
+				int end = start;
+				while (i + 1 < nlines && lines_arr[i+1] == end + 1) { i++; end = lines_arr[i]; }
+				if (!first) fprintf(out, ",");
+				if (start == end) fprintf(out, "%d", start);
+				else fprintf(out, "%d-%d", start, end);
+				first = 0;
+				i++;
+			}
+			if (total > nlines) fprintf(out, " (+%d)", total - nlines);
+			fprintf(out, "\n");
+		}
+		free(lines_arr);
 		sqlite3_finalize(rstmt);
 		sqlite3_close(db);
+		free(resolved_db);
 		return 0;
 	}
 
@@ -252,7 +354,17 @@ int class_command(int argc, char **argv, FILE *out)
 						long mstart = sqlite3_column_int64(mstmt, 1);
 						long mend = sqlite3_column_int64(mstmt, 2);
 						if (mend <= 0) mend = mstart;
-						print_class_body(out, mpath, mstart, mend);
+						long rstart = mstart, rend = mend;
+						if (lines) {
+							char buf[64]; strncpy(buf, lines, sizeof(buf)-1); buf[sizeof(buf)-1]='\0';
+							char *comma = strchr(buf, ',');
+							if (comma) { *comma='\0'; rstart = atoi(buf); rend = atoi(comma+1); }
+							else { rstart = atoi(buf); rend = rstart; }
+						}
+						if (rstart < mstart) rstart = mstart;
+						if (rend > mend) rend = mend;
+						if (max_lines > 0 && rend - rstart + 1 > max_lines) rend = rstart + max_lines - 1;
+						print_class_body(out, mpath, rstart, rend);
 						found = 1;
 					}
 					sqlite3_finalize(mstmt);
@@ -260,7 +372,17 @@ int class_command(int argc, char **argv, FILE *out)
 				}
 			} else {
 				long el = end_line > 0 ? end_line : line;
-				print_class_body(out, path, line, el);
+				long rstart = line, rend = el;
+				if (lines) {
+					char buf[64]; strncpy(buf, lines, sizeof(buf)-1); buf[sizeof(buf)-1]='\0';
+					char *comma = strchr(buf, ',');
+					if (comma) { *comma='\0'; rstart = atoi(buf); rend = atoi(comma+1); }
+					else { rstart = atoi(buf); rend = rstart; }
+				}
+				if (rstart < line) rstart = line;
+				if (rend > el) rend = el;
+				if (max_lines > 0 && rend - rstart + 1 > max_lines) rend = rstart + max_lines - 1;
+				print_class_body(out, path, rstart, rend);
 			}
 			continue;
 		}
@@ -294,10 +416,16 @@ int class_command(int argc, char **argv, FILE *out)
 		} else {
 			/* print selected or all */
 			int first = 1;
-			const char *letters = all ? "ABCDEFGIJKL" : info;
+			const char *letters = all ? "ABCDEGJL" : info;
 			for (const char *p = letters; *p; p++) {
 				const char *fname = field_name(*p);
 				if (!fname) continue;
+				/* skip empty fields */
+				if (*p == 'D' && (!bases || !bases[0])) continue;
+				if (*p == 'E' && (!methods || !methods[0])) continue;
+				if (*p == 'G' && (!doc || !doc[0])) continue;
+				if (*p == 'J' && (!decs || !decs[0])) continue;
+				if (*p == 'K' && (!path || strcmp(path, path) == 0)) continue; /* module=file, skip */
 				if (!first) fprintf(out, " | ");
 				first = 0;
 				if (*p == 'A') fprintf(out, "name=%s", n ? n : "");
@@ -322,5 +450,6 @@ int class_command(int argc, char **argv, FILE *out)
 	}
 	sqlite3_finalize(stmt);
 	sqlite3_close(db);
+	free(resolved_db);
 	return 0;
 }

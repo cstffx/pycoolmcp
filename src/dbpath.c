@@ -20,7 +20,6 @@ char *pycool_resolve_db(void)
 		struct stat st;
 		if (stat(path, &st) == 0 && S_ISREG(st.st_mode)) return strdup(path);
 
-		/* also allow index.db in cwd */
 		snprintf(path, sizeof(path), "%s/index.db", cur);
 		if (stat(path, &st) == 0 && S_ISREG(st.st_mode)) return strdup(path);
 

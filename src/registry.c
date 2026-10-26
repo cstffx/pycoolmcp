@@ -51,7 +51,7 @@ int registry_register(const char *root, const char *dbpath)
 {
 	char *dir = state_dir();
 	if (!dir) return -1;
-	char path[4096];
+	char path[8192];
 	int n = snprintf(path, sizeof(path), "%s/%d.reg", dir, (int)getpid());
 	if (n < 0 || (size_t)n >= sizeof(path)) { free(dir); return -1; }
 	FILE *f = fopen(path, "w");
@@ -66,7 +66,7 @@ int registry_unregister(void)
 {
 	char *dir = state_dir();
 	if (!dir) return -1;
-	char path[4096];
+	char path[8192];
 	int n = snprintf(path, sizeof(path), "%s/%d.reg", dir, (int)getpid());
 	if (n < 0 || (size_t)n >= sizeof(path)) { free(dir); return -1; }
 	unlink(path);
@@ -93,7 +93,7 @@ int registry_list_paths(char ***roots, char ***dbpaths, pid_t **pids, int *count
 		if (ent->d_name[0] == '.') continue;
 		size_t L = strlen(ent->d_name);
 		if (L < 5 || strcmp(ent->d_name + L - 4, ".reg") != 0) continue;
-		char path[4096];
+		char path[8192];
 		snprintf(path, sizeof(path), "%s/%s", dir, ent->d_name);
 		FILE *f = fopen(path, "r");
 		if (!f) continue;
@@ -165,7 +165,7 @@ char *registry_default_db(void)
 		strncpy(cur, cwd, sizeof(cur)-1);
 		cur[sizeof(cur)-1] = '\0';
 		for (;;) {
-			char path[4096];
+			char path[8192];
 			snprintf(path, sizeof(path), "%s/.pycool/index.db", cur);
 			struct stat st;
 			if (stat(path, &st) == 0) return strdup(path);

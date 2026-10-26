@@ -13,4 +13,4 @@ Tool: **gcovr** (`.gcovr.cfg`). Build with `--coverage`, run tests, then `gcovr 
 - Coverage target list: `coverage.md`.
 
 ## Before commit
-Always run `cppcheck --enable=all --inconclusive --quiet --suppress=missingInclude --suppress=missingIncludeSystem --suppress=checkLevelNormal --suppress=checkersReport --suppress=normalCheckLevelMaxBranches --suppress=unusedFunction --suppress=staticFunction src/ index/ mcp/ pycoolctl/ http/` and ensure `cppcheck.txt` is empty before committing.
+Always run `cppcheck --enable=all --inconclusive --quiet --suppress=missingInclude --suppress=missingIncludeSystem --suppress=checkLevelNormal --suppress=checkersReport --suppress=normalCheckLevelMaxBranches --suppress=unusedFunction --suppress=staticFunction src/ index/ mcp/ pycoolctl/ http/` and ensure `cppcheck.txt` is empty before committing. If there is any error/warning, fix it before committing.

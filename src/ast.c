@@ -79,6 +79,10 @@ int ast_class_names(Ast *ast, char ***out_names)
 		return 0;
 	}
 	char **names = calloc(count, sizeof(char *));
+	if (!names) {
+		Py_XDECREF(classdef); Py_XDECREF(ast_mod); Py_DECREF(body);
+		return 0;
+	}
 	int idx = 0;
 	Py_ssize_t n = PyList_Size(body);
 	for (Py_ssize_t i = 0; i < n && idx < count; i++) {
@@ -87,7 +91,10 @@ int ast_class_names(Ast *ast, char ***out_names)
 			PyObject *name = PyObject_GetAttrString(node, "name");
 			if (name) {
 				const char *s = PyUnicode_AsUTF8(name);
-				if (s) names[idx++] = strdup(s);
+				if (s) {
+					char *dup = strdup(s);
+					if (dup) names[idx++] = dup;
+				}
 				Py_DECREF(name);
 			}
 		}

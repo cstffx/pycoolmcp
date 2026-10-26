@@ -140,7 +140,7 @@ pipeline: cppcheck build test clean
 	@echo "Pipeline OK - ready to push"
 
 cppcheck:
-	cppcheck --enable=all --inconclusive --quiet --suppress=missingInclude --suppress=missingIncludeSystem --suppress=checkLevelNormal --suppress=checkersReport --suppress=normalCheckLevelMaxBranches --suppress=unusedFunction --suppress=staticFunction src/ index/ mcp/ pycoolctl/ http/ 2>&1 | tee cppcheck.txt
+	cppcheck --enable=all --inconclusive --inline-suppr --quiet --suppress=missingInclude --suppress=missingIncludeSystem --suppress=checkLevelNormal --suppress=checkersReport --suppress=normalCheckLevelMaxBranches --suppress=unmatchedSuppression src/ index/ mcp/ pycoolctl/ http/ 2>&1 | tee cppcheck.txt
 	test ! -s cppcheck.txt
 
 build: all

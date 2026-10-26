@@ -168,7 +168,7 @@ check: test_ast test_traverse test_index test_dbpath test_info test_list test_re
 	@echo "ALL TESTS PASSED"
 
 clean:
-	rm -f *.o *.a *.so *.so.* test_ast test_traverse test_index test_overlap test_ignore test_incremental test_clean test_stop test_extract test_observer test_class test_method test_registry pycool http_server pycoolmcp *.gcda *.gcno *.gcov
+	rm -f *.o *.a *.so *.so.* test_ast test_traverse test_index test_dbpath test_reindex test_list test_info test_overlap test_ignore test_incremental test_clean test_stop test_extract test_observer test_class test_method test_registry pycool http_server pycoolmcp *.gcda *.gcno *.gcov
 	rm -rf bin $(SRC)/*.o $(INDEX)/*.o $(SRC)/*.gcda $(SRC)/*.gcno $(INDEX)/*.gcda $(INDEX)/*.gcno
 
 release:

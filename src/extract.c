@@ -46,7 +46,7 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 	sqlite3_int64 sid;
 	if (strcmp(type, "ClassDef") == 0) {
 		char *bases = NULL, *methods = NULL, *docstring = NULL, *decorators = NULL;
-		sqlite3_int64 sid = 0;
+		sid = 0;
 		if (name) index_add_symbol(ctx->db, ctx->file_id, name, "class", lineno, 0, NULL, &sid);
 		PyObject *ast_mod = PyImport_ImportModule("ast");
 		if (ast_mod && node) {
@@ -226,8 +226,8 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 
 									/* vararg */
 									if (vararg && vararg != Py_None) {
-										PyObject *vname = PyObject_GetAttrString(vararg, "arg");
-										const char *vn = vname ? PyUnicode_AsUTF8(vname) : NULL;
+										PyObject *varg_name2 = PyObject_GetAttrString(vararg, "arg");
+										const char *vn = varg_name2 ? PyUnicode_AsUTF8(varg_name2) : NULL;
 										if (vn && PyErr_Occurred()) { PyErr_Clear(); vn = NULL; }
 										PyObject *vann = PyObject_GetAttrString(vararg, "annotation");
 										PyObject *vann_str = (unparse_fn && vann && vann != Py_None) ? PyObject_CallFunction(unparse_fn, "(O)", vann) : NULL;
@@ -235,7 +235,7 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 										index_add_method_arg(ctx->db, mid, vn, vann_s, NULL, "varargs", -1);
 										Py_XDECREF(vann_str);
 										Py_XDECREF(vann);
-										Py_XDECREF(vname);
+										Py_XDECREF(varg_name2);
 									}
 
 									/* kwonly args */
@@ -393,14 +393,14 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 													}
 													Py_XDECREF(combined);
 													if (vararg && vararg != Py_None) {
-														PyObject *vname = PyObject_GetAttrString(vararg,"arg");
-														const char *vn = vname ? PyUnicode_AsUTF8(vname) : NULL;
+														PyObject *varg_name = PyObject_GetAttrString(vararg,"arg");
+														const char *vn = varg_name ? PyUnicode_AsUTF8(varg_name) : NULL;
 														if (vn && PyErr_Occurred()) { PyErr_Clear(); vn=NULL; }
 														PyObject *vann = PyObject_GetAttrString(vararg,"annotation");
 														PyObject *vann_str = (unparse_fn && vann && vann != Py_None) ? PyObject_CallFunction(unparse_fn,"(O)",vann) : NULL;
 														const char *vann_s = (vann_str && PyUnicode_Check(vann_str)) ? PyUnicode_AsUTF8(vann_str) : NULL;
 														index_add_method_arg(ctx->db, mid, vn, vann_s, NULL, "varargs", -1);
-														Py_XDECREF(vann_str); Py_XDECREF(vann); Py_XDECREF(vname);
+														Py_XDECREF(vann_str); Py_XDECREF(vann); Py_XDECREF(varg_name);
 													}
 													if (kwonly && PyList_Check(kwonly)) {
 														Py_ssize_t nkw = PyList_Size(kwonly);

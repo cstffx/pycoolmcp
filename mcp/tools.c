@@ -36,6 +36,7 @@ static int get_int(json_object *o, const char *key, int def)
 	return def;
 }
 
+// cppcheck-suppress staticFunction
 json_object *tool_result(const char *text, int is_error)
 {
 	json_object *content = json_object_new_array();

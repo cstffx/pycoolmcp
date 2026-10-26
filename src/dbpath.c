@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
+// cppcheck-suppress unusedFunction
 char *pycool_resolve_db(void)
 {
 	const char *env = getenv("PYCOOL_DB");

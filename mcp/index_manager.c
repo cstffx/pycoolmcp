@@ -55,6 +55,7 @@ void resolve_pycool(const char *argv0)
 }
 
 const char *pycoolctl_path(void) { return pycoolctl_path_buf; }
+// cppcheck-suppress unusedFunction
 const char *pycool_path(void) { return pycool_path_buf; }
 
 int index_start(const char *root, const char *db, char **msg)

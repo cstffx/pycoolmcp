@@ -42,6 +42,7 @@ static char *state_dir(void)
 	return dir;
 }
 
+// cppcheck-suppress unusedFunction
 char *registry_dir(void)
 {
 	return state_dir();
@@ -124,6 +125,7 @@ int registry_list_paths(char ***roots, char ***dbpaths, pid_t **pids, int *count
 	return 0;
 }
 
+// cppcheck-suppress unusedFunction
 int registry_stop(pid_t pid)
 {
 	if (kill(pid, SIGTERM) != 0) return -1;

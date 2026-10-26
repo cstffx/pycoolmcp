@@ -149,26 +149,7 @@ int class_command(int argc, char **argv, FILE *out)
 			sqlite3_exec(db, vsql, NULL, NULL, NULL);
 		}
 	}
-	{
-		int sv = index_schema_version(db);
-		if (sv != -1 && sv != PYCOOL_SCHEMA_VERSION) {
-			fprintf(out, "error: schema mismatch (db=v%d, code=v%d)\n", sv, PYCOOL_SCHEMA_VERSION);
-			fprintf(out, "remedy: rebuild index with: pycool <root> %s\n", dbpath ? dbpath : "(db)");
-			sqlite3_close(db);
-			return 1;
-		}
-		if (sv == -1) {
-			char vsql[128];
-			snprintf(vsql, sizeof(vsql), "INSERT OR REPLACE INTO meta(key,value) VALUES('schema_version','%d');", PYCOOL_SCHEMA_VERSION);
-			sqlite3_exec(db, vsql, NULL, NULL, NULL);
-		}
-	}
 	if (refs_mode) {
-		if (!name) {
-			fprintf(stderr, "usage: pycoolctl class <Name> --refs [--file PATH] [--db PATH]\n");
-			sqlite3_close(db);
-			return 2;
-		}
 		char rsql[2048];
 		if (file) {
 			snprintf(rsql, sizeof(rsql),
@@ -217,20 +198,6 @@ int class_command(int argc, char **argv, FILE *out)
 			         "FROM symbols s JOIN files f ON s.file_id=f.id "
 			         "LEFT JOIN class_details cd ON cd.symbol_id=s.id "
 			         "WHERE s.kind='class' AND s.name=?;");
-		}
-	} else {
-		if (file) {
-			snprintf(sql, sizeof(sql),
-			         "SELECT s.name, f.path, s.line, cd.bases, cd.methods, cd.docstring, cd.decorators, cd.end_line "
-			         "FROM symbols s JOIN files f ON s.file_id=f.id "
-			         "LEFT JOIN class_details cd ON cd.symbol_id=s.id "
-			         "WHERE s.kind='class' AND f.path=?;");
-		} else {
-			snprintf(sql, sizeof(sql),
-			         "SELECT s.name, f.path, s.line, cd.bases, cd.methods, cd.docstring, cd.decorators, cd.end_line "
-			         "FROM symbols s JOIN files f ON s.file_id=f.id "
-			         "LEFT JOIN class_details cd ON cd.symbol_id=s.id "
-			         "WHERE s.kind='class';");
 		}
 	}
 	sqlite3_stmt *stmt;

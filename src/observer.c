@@ -79,6 +79,7 @@ int observer_watch(const char *root, observer_callback cb, void *userdata)
 	if (fd < 0) return -1;
 	inotify_fd_global = fd;
 	if (add_recursive(fd, root) != 0) { close(fd); return -1; }
+	path_for_wd(-1);
 
 	char buf[65536];
 	while (1) {
@@ -106,16 +107,6 @@ int observer_watch(const char *root, observer_callback cb, void *userdata)
 
 				if ((ev->mask & IN_CREATE || ev->mask & IN_MOVED_TO) && (ev->mask & IN_ISDIR)) {
 					add_recursive(fd, full);
-				}
-				if ((ev->mask & IN_DELETE || ev->mask & IN_MOVED_FROM) && (ev->mask & IN_ISDIR)) {
-					/* find and remove child watch by path */
-					for (size_t i = 0; i < n_watches; i++) {
-						if (strcmp(watches[i].path, full) == 0) {
-							inotify_rm_watch(fd, watches[i].wd);
-							remove_watch(watches[i].wd);
-							break;
-						}
-					}
 				}
 				if (ev->mask & IN_IGNORED) {
 					remove_watch(ev->wd);

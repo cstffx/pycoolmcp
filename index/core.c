@@ -346,8 +346,7 @@ int index_file_changed(sqlite3 *db, const char *path, long mtime, const char *ha
 		return changed ? 1 : 0;
 	}
 	sqlite3_finalize(stmt);
-	if (rc == SQLITE_DONE) return 1; /* new file */
-	return -1;
+	return 1; /* new file or unexpected */
 }
 
 

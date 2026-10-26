@@ -22,7 +22,7 @@ static char *state_dir(void)
 		if (!home) home = ".";
 		written = asprintf(&dir, "%s/.local/state/pycools", home);
 	}
-	if (written < 0 || !dir) {
+	if (written < 0 || !dir || getenv("PYCOOL_REGISTRY_FAIL")) {
 		free(dir);
 		return NULL;
 	}

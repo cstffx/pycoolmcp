@@ -29,15 +29,6 @@ static volatile sig_atomic_t pycool_reindex_requested = 0;
 static void on_event(const char *path, uint32_t mask, void *userdata)
 {
 	sqlite3 *db = userdata;
-	if (mask & IN_Q_OVERFLOW) {
-		if (pycool_root) scan_dir(pycool_root, db);
-		return;
-	}
-	if (pycool_root && (mask & (IN_DELETE_SELF | IN_IGNORED)) && strcmp(path, pycool_root) == 0) {
-		pycool_running = 0;
-		observer_stop();
-		return;
-	}
 	if (pycool_root && ignore_is_ignored(pycool_ignore, pycool_root, path)) {
 		if (!(mask & (IN_DELETE | IN_MOVED_FROM))) index_remove_file(db, path);
 		return;
@@ -71,6 +62,9 @@ static void handle_signal(int sig)
 static void clean_index(sqlite3 *db)
 {
 	index_begin(db);
+	sqlite3_exec(db, "DELETE FROM method_args;", NULL, NULL, NULL);
+	sqlite3_exec(db, "DELETE FROM methods;", NULL, NULL, NULL);
+	sqlite3_exec(db, "DELETE FROM class_details;", NULL, NULL, NULL);
 	sqlite3_exec(db, "DELETE FROM types;", NULL, NULL, NULL);
 	sqlite3_exec(db, "DELETE FROM refs;", NULL, NULL, NULL);
 	sqlite3_exec(db, "DELETE FROM symbols;", NULL, NULL, NULL);
@@ -82,7 +76,6 @@ int pycool_run(const char *root, const char *dbpath)
 {
 	char *root_abs = realpath(root, NULL);
 	if (!root_abs) root_abs = strdup(root);
-	if (!root_abs) return -1;
 	if (registry_overlap(root_abs)) {
 		fprintf(stderr, "error: %s is already monitored (or overlaps a monitored directory)\n", root_abs);
 		free(root_abs);

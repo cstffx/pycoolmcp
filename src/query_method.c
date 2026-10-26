@@ -6,6 +6,7 @@
 #include <string.h>
 #include <sqlite3.h>
 #include "../index/core.h"
+#include "dbpath.h"
 
 static void print_json_str(FILE *out, const char *s)
 {
@@ -118,10 +119,11 @@ int method_command(int argc, char **argv, FILE *out)
 		fprintf(stderr, "usage: pycoolctl method <Class> [Method] [--file PATH] [--body] [--json] [--limit N] [--offset N] [--pid PID] [--db PATH]\n");
 		return 2;
 	}
+	if (!dbpath) dbpath = pycool_resolve_db();
 	if (!dbpath) {
 		char **roots, **dbpaths; pid_t *pids; int n;
 		if (registry_list_paths(&roots, &dbpaths, &pids, &n) != 0 || n == 0) {
-			fprintf(stderr, "no running instance; pass --db PATH\n");
+			fprintf(stderr, "no running instance and no default db; pass --db PATH\n");
 			return 1;
 		}
 		if (pidstr) {

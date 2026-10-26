@@ -16,22 +16,11 @@ int main(int argc, char **argv)
 	char *dbpath = NULL;
 	if (argc >= 3) {
 		dbpath = strdup(argv[2]);
-		if (!dbpath) {
-			perror("strdup");
-			return 2;
-		}
 	} else {
 		char *dir = NULL;
-		if (asprintf(&dir, "%s/.pycool", root) == -1 || !dir) {
-			perror("asprintf");
-			return 2;
-		}
+		asprintf(&dir, "%s/.pycool", root);
 		mkdir(dir, 0755);
-		if (asprintf(&dbpath, "%s/index.db", dir) == -1 || !dbpath) {
-			free(dir);
-			perror("asprintf");
-			return 2;
-		}
+		asprintf(&dbpath, "%s/index.db", dir);
 		free(dir);
 	}
 	int rc = pycool_run(root, dbpath);

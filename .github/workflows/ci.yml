@@ -19,7 +19,7 @@ jobs:
             libpython3-dev libsqlite3-dev libjson-c-dev pkg-config
 
       - name: Static analysis
-        run: cppcheck --enable=all --inconclusive --quiet --suppress=missingInclude --suppress=missingIncludeSystem --suppress=knownConditionTrueFalse --suppress=unreadVariable --suppress=constVariablePointer --suppress=shadowVariable --suppress=stringCompare --suppress=nullPointerOutOfMemory --suppress=checkLevelNormal --suppress=checkersReport --suppress=normalCheckLevelMaxBranches src/ index/ mcp/ pycoolctl/ http/ 2>&1 | tee cppcheck.txt; test ! -s cppcheck.txt
+        run: cppcheck --enable=all --inconclusive --quiet --suppress=missingInclude --suppress=missingIncludeSystem --suppress=checkLevelNormal --suppress=checkersReport --suppress=normalCheckLevelMaxBranches --suppress=unusedFunction --suppress=staticFunction src/ index/ mcp/ pycoolctl/ http/ 2>&1 | tee cppcheck.txt; test ! -s cppcheck.txt
 
       - name: Lint
         run: make lint

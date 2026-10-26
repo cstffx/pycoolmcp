@@ -31,7 +31,7 @@ Ignore *ignore_load(const char *root)
 	while (fgets(line, sizeof(line), f)) {
 		size_t L = strlen(line);
 		while (L > 0 && (line[L-1] == '\n' || line[L-1] == '\r')) line[--L] = '\0';
-		char *p = line;
+		const char *p = line;
 		while (*p == ' ' || *p == '\t') p++;
 		if (*p == '\0' || *p == '#') continue;
 		add_pattern(ig, p);
@@ -53,7 +53,7 @@ static int pattern_negated(const char *raw)
 	return raw && raw[0] == '!';
 }
 
-int ignore_is_ignored(Ignore *ig, const char *root, const char *path)
+int ignore_is_ignored(const Ignore *ig, const char *root, const char *path)
 {
 	if (!ig || ig->n == 0 || !path) return 0;
 	const char *rel = path;

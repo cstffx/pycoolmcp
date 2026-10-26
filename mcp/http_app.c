@@ -175,7 +175,7 @@ int main(int argc, char **argv)
 {
 	signal(SIGPIPE, SIG_IGN);
 
-	char *slash = strrchr(argv[0], '/');
+	const char *slash = strrchr(argv[0], '/');
 	if (slash) {
 		snprintf(pycoolctl_path, sizeof(pycoolctl_path), "%.*s/bin/pycoolctl",
 		         (int)(slash - argv[0]), argv[0]);

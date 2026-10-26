@@ -25,7 +25,7 @@ int info_command(int argc, char **argv, FILE *out)
 	} else {
 		char *end = NULL;
 		long pid = strtol(argv[2], &end, 10);
-		char *dbpath = NULL;
+		const char *dbpath = NULL;
 		if (*end == '\0') {
 			char **roots, **dbpaths; pid_t *pids; int n;
 			if (registry_list_paths(&roots, &dbpaths, &pids, &n) == 0) {

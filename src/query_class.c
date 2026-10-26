@@ -425,7 +425,7 @@ int class_command(int argc, char **argv, FILE *out)
 				if (*p == 'E' && (!methods || !methods[0])) continue;
 				if (*p == 'G' && (!doc || !doc[0])) continue;
 				if (*p == 'J' && (!decs || !decs[0])) continue;
-				if (*p == 'K' && (!path || strcmp(path, path) == 0)) continue; /* module=file, skip */
+				if (*p == 'K') continue; /* module=file, skip */
 				if (!first) fprintf(out, " | ");
 				first = 0;
 				if (*p == 'A') fprintf(out, "name=%s", n ? n : "");

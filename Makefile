@@ -160,6 +160,13 @@ test_method: $(TESTS)/test_method.c $(SRC)/query_method.c $(SRC)/dbpath.o $(SRC)
 test_registry: $(TESTS)/test_registry.c $(SRC)/registry.o
 	$(CC) $(CFLAGS) -Isrc -o $@ $(TESTS)/test_registry.c $(SRC)/registry.o --coverage -lpthread
 
+check: test_ast test_traverse test_index test_dbpath test_info test_list test_reindex test_clean test_stop test_extract test_ignore test_observer test_class test_method test_registry test_overlap test_incremental
+	@for t in test_ast test_traverse test_index test_dbpath test_info test_list test_reindex test_clean test_stop test_extract test_ignore test_observer test_class test_method test_registry test_overlap test_incremental; do \
+		echo "RUN $$t"; \
+		./$$t >/tmp/opencode/$$t.out 2>&1 || { echo "FAIL $$t"; cat /tmp/opencode/$$t.out; exit 1; }; \
+	done
+	@echo "ALL TESTS PASSED"
+
 clean:
 	rm -f *.o *.a *.so *.so.* test_ast test_traverse test_index test_overlap test_ignore test_incremental test_clean test_stop test_extract test_observer test_class test_method test_registry pycool http_server pycoolmcp *.gcda *.gcno *.gcov
 	rm -rf bin $(SRC)/*.o $(INDEX)/*.o $(SRC)/*.gcda $(SRC)/*.gcno $(INDEX)/*.gcda $(INDEX)/*.gcno

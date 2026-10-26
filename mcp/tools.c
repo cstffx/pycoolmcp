@@ -352,8 +352,11 @@ void handle_tools_call(json_object *id, json_object *params)
 			char tail[128];
 			snprintf(tail, sizeof(tail), "\n… (+%zu more bytes; use limit/offset)\n", blen - cap);
 			size_t nlen = strlen(buf);
-			buf = realloc(buf, nlen + strlen(tail) + 1);
-			strcat(buf, tail);
+			char *tmp = realloc(buf, nlen + strlen(tail) + 1);
+			if (tmp) {
+				buf = tmp;
+				strcat(buf, tail);
+			}
 		}
 	}
 	json_object *result = tool_result(buf ? buf : "", is_error);

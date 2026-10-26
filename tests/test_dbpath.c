@@ -25,7 +25,7 @@ int main(void)
 	char dbp[4096];
 	snprintf(dbp, sizeof(dbp), "%s/.pycool/index.db", dir);
 	FILE *f = fopen(dbp, "w"); if (f) { fputc('x', f); fclose(f); }
-	chdir(dir);
+	(void)chdir(dir);
 	p = pycool_resolve_db();
 	printf("pycool=%s\n", p ? p : "(null)");
 	free(p);
@@ -49,7 +49,7 @@ int main(void)
 	char pdb[4096];
 	snprintf(pdb, sizeof(pdb), "%s/index.db", pdir);
 	f = fopen(pdb, "w"); if (f) { fputc('x', f); fclose(f); }
-	chdir(cdir);
+	(void)chdir(cdir);
 	p = pycool_resolve_db();
 	printf("parent=%s\n", p ? p : "(null)");
 	free(p);
@@ -58,7 +58,7 @@ int main(void)
 	rmdir(pdir);
 
 	/* no db -> NULL (and root break) */
-	chdir("/");
+	(void)chdir("/");
 	p = pycool_resolve_db();
 	printf("none=%s\n", p ? p : "(null)");
 	free(p);
@@ -66,12 +66,12 @@ int main(void)
 	/* getcwd failure */
 	char tmpdir[] = "/tmp/opencode/cwdXXXXXX";
 	char *td = mkdtemp(tmpdir);
-	chdir(td);
+	(void)chdir(td);
 	rmdir(td); /* cwd now deleted */
 	p = pycool_resolve_db();
 	printf("getcwd_fail=%s\n", p ? p : "(null)");
 	free(p);
 
-	chdir("/tmp/opencode");
+	(void)chdir("/tmp/opencode");
 	return 0;
 }

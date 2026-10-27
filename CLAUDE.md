@@ -9,8 +9,8 @@ C/Python indexer (pycool daemon + pycoolctl CLI + MCP server).
 Tool: **gcovr** (`.gcovr.cfg`). Build with `--coverage`, run tests, then `gcovr --root .`. `make clean` removes `*.gcda`, `*.gcno`, `*.gcov`.
 
 ## Notes
-- Source: `src/`, `index/`, `pycoolctl/`, `mcp/`, `http/`.
-- Coverage target list: `coverage.md`.
+- Source: `src/`, `index/`, `pycoolctl/`, `mcp/`.
+- Functions with cognitive complexity > 25 are tracked in clang-tidy linting.
 
 ## Before commit
-Always run `cppcheck --enable=all --inconclusive --inline-suppr --quiet --suppress=missingInclude --suppress=missingIncludeSystem --suppress=checkLevelNormal --suppress=checkersReport --suppress=normalCheckLevelMaxBranches --suppress=unmatchedSuppression src/ index/ mcp/ pycoolctl/ http/` and ensure `cppcheck.txt` is empty before committing. If there is any error/warning, fix it before committing.
+Always run `cppcheck --enable=all --inconclusive --inline-suppr --quiet --suppress=missingInclude --suppress=missingIncludeSystem --suppress=checkLevelNormal --suppress=checkersReport --suppress=normalCheckLevelMaxBranches --suppress=unmatchedSuppression src/ index/ mcp/ pycoolctl/` and ensure `cppcheck.txt` is empty before committing. If there is any error/warning, fix it before committing.

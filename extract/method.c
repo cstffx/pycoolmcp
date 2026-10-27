@@ -23,7 +23,7 @@ static void append_to_methods(const char *sig, char **methods, size_t *cap, size
 	*len += strlen(sig);
 }
 
-void extract_method_args(PyObject *args_obj, sqlite3_int64 method_id, PyObject *unparse_fn, Ctx *ctx)
+static void extract_method_args(PyObject *args_obj, sqlite3_int64 method_id, PyObject *unparse_fn, Ctx *ctx)
 {
 	if (!args_obj || !ctx) { return;
 }
@@ -147,6 +147,8 @@ void extract_method_in_class(PyObject *node, const char *method_name, int class_
 	if (decs && PyList_Check(decs)) {
 		size_t dcap = 256, dlen = 0;
 		decorators = malloc(dcap);
+		if (!decorators) { Py_XDECREF(decs); Py_XDECREF(unparse_fn); Py_XDECREF(args_obj); Py_XDECREF(name_type_obj); Py_XDECREF(name_cls); return;
+}
 		decorators[0] = '\0';
 		Py_ssize_t ndec = PyList_Size(decs);
 		for (Py_ssize_t i = 0; i < ndec; i++) {

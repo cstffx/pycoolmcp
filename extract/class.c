@@ -18,7 +18,7 @@ void extract_class(const char *class_name, int lineno, PyObject *node, Ctx *ctx)
 	index_add_symbol(ctx->db, ctx->file_id, class_name, "class", lineno, 0, NULL, &sid);
 
 	PyObject *ast_mod = get_ast_module();
-	if (ast_mod && node) {
+	if (ast_mod) {
 		/* Extract class attributes */
 		bases = extract_bases(node, ast_mod);
 		docstring = extract_docstring(node, ast_mod);
@@ -30,7 +30,8 @@ void extract_class(const char *class_name, int lineno, PyObject *node, Ctx *ctx)
 			size_t cap = 256;
 			size_t len = 0;
 			methods = malloc(cap);
-			methods[0] = '\0';
+			if (methods) {
+				methods[0] = '\0';
 
 			Py_ssize_t nb = PyList_Size(body);
 			for (Py_ssize_t bi = 0; bi < nb; bi++) {
@@ -57,8 +58,9 @@ void extract_class(const char *class_name, int lineno, PyObject *node, Ctx *ctx)
 				Py_XDECREF(item_cls);
 			}
 
-			if (methods) { methods[len] = '\0';
+				if (methods) { methods[len] = '\0';
 }
+			}
 			Py_XDECREF(body);
 		}
 

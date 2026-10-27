@@ -49,6 +49,8 @@ static char *build_string_list(PyObject *items, const char *sep, PyObject *unpar
 	size_t cap = 256;
 	size_t len = 0;
 	char *result = malloc(cap);
+	if (!result) { return NULL;
+}
 	result[0] = '\0';
 
 	Py_ssize_t n = PyList_Size(items);
@@ -106,6 +108,8 @@ char *extract_decorators(PyObject *node, PyObject *ast_mod)
 	size_t cap = 256;
 	size_t len = 0;
 	char *result = malloc(cap);
+	if (!result) { Py_XDECREF(unparse); Py_XDECREF(decs); return NULL;
+}
 	result[0] = '\0';
 
 	Py_ssize_t nd = PyList_Size(decs);

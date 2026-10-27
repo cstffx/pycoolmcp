@@ -18,7 +18,7 @@ void extract_assigned_method_in_class(PyObject *node, int lineno, PyObject *ast_
 /* Extract module-level function/method */
 void extract_function(const char *func_name, int lineno, PyObject *node, Ctx *ctx);
 
-/* Extract method arguments */
-void extract_method_args(PyObject *args_obj, sqlite3_int64 method_id, PyObject *unparse_fn, Ctx *ctx);
+/* Extract method arguments (internal use) */
+/* void extract_method_args(...); */
 
 #endif

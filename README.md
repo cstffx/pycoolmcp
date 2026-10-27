@@ -2,6 +2,17 @@
 
 Index Python source trees and query symbols fast.
 
+## Features
+
+- **AST parsing**: Parse Python files and extract code structure
+- **Symbol indexing**: Index classes, methods, and other Python symbols
+- **Fast queries**: Search symbols by name and type
+- **Incremental updates**: Watch directories for changes and update index
+- **MCP server**: Model Context Protocol integration for editor plugins
+- **CLI tool**: `pycoolctl` for command-line queries
+- **HTTP API**: REST interface for programmatic access
+- **SQLite backend**: Persistent, queryable index database
+
 ## Build
 
 ```bash

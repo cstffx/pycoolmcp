@@ -10,7 +10,6 @@ Index Python source trees and query symbols fast.
 - **Incremental updates**: Watch directories for changes and update index
 - **MCP server**: Model Context Protocol integration for editor plugins
 - **CLI tool**: `pycoolctl` for command-line queries
-- **HTTP API**: REST interface for programmatic access
 - **SQLite backend**: Persistent, queryable index database
 
 ## Build
@@ -35,9 +34,4 @@ make
 **MCP server:**
 ```bash
 ./build/pycoolmcp
-```
-
-**HTTP server:**
-```bash
-./build/http_server [port] [bind]
 ```

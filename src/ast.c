@@ -7,7 +7,8 @@ Ast *ast_parse(const char *source, const char *filename)
 	if (!Py_IsInitialized()) {
 		Py_Initialize();
 	}
-	if (!filename) filename = "<string>";
+	if (!filename) { filename = "<string>";
+}
 
 	PyObject *ast_mod = PyImport_ImportModule("ast");
 	if (!ast_mod) { PyErr_Print(); return NULL; }
@@ -24,7 +25,8 @@ Ast *ast_parse(const char *source, const char *filename)
 	if (!mod) { Py_DECREF(ast_mod); PyErr_Print(); return NULL; }
 
 	Ast *a = calloc(1, sizeof(Ast));
-	if (!a) return NULL;
+	if (!a) { return NULL;
+}
 	a->module = mod;
 	/* keep ast module ref? not stored; class checks import again */
 	Py_DECREF(ast_mod);
@@ -33,7 +35,8 @@ Ast *ast_parse(const char *source, const char *filename)
 
 void ast_free(Ast *ast)
 {
-	if (!ast) return;
+	if (!ast) { return;
+}
 	Py_XDECREF(ast->module);
 	free(ast);
 }
@@ -46,7 +49,8 @@ static PyObject *ast_module(void)
 // cppcheck-suppress staticFunction
 int ast_class_count(Ast *ast)
 {
-	if (!ast || !ast->module) return 0;
+	if (!ast || !ast->module) { return 0;
+}
 	PyObject *body = PyObject_GetAttrString(ast->module, "body");
 	if (!body || !PyList_Check(body)) { Py_XDECREF(body); return 0; }
 	PyObject *ast_mod = ast_module();
@@ -55,7 +59,8 @@ int ast_class_count(Ast *ast)
 	Py_ssize_t n = PyList_Size(body);
 	for (Py_ssize_t i = 0; i < n; i++) {
 		PyObject *node = PyList_GetItem(body, i);
-		if (classdef && PyObject_IsInstance(node, classdef)) count++;
+		if (classdef && PyObject_IsInstance(node, classdef)) { count++;
+}
 	}
 	Py_XDECREF(classdef);
 	Py_XDECREF(ast_mod);
@@ -66,7 +71,8 @@ int ast_class_count(Ast *ast)
 // cppcheck-suppress unusedFunction
 int ast_class_names(Ast *ast, char ***out_names)
 {
-	if (!ast || !ast->module || !out_names) return 0;
+	if (!ast || !ast->module || !out_names) { return 0;
+}
 	*out_names = NULL;
 	PyObject *body = PyObject_GetAttrString(ast->module, "body");
 	if (!body || !PyList_Check(body)) { Py_XDECREF(body); return 0; }
@@ -93,7 +99,8 @@ int ast_class_names(Ast *ast, char ***out_names)
 				const char *s = PyUnicode_AsUTF8(name);
 				if (s) {
 					char *dup = strdup(s);
-					if (dup) names[idx++] = dup;
+					if (dup) { names[idx++] = dup;
+}
 				}
 				Py_DECREF(name);
 			}

@@ -52,7 +52,8 @@ static void handle_request(json_object *req)
 	} else if (strcmp(method, "tools/list") == 0) {
 		handle_tools_list(id);
 	} else if (strcmp(method, "tools/call") == 0) {
-		if (!params) params = json_object_new_object();
+		if (!params) { params = json_object_new_object();
+}
 		handle_tools_call(id, params);
 	} else {
 		json_object *err = json_object_new_object();

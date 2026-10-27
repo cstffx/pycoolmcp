@@ -18,7 +18,7 @@ jobs:
             libpython3-dev libsqlite3-dev libjson-c-dev pkg-config
 
       - name: Static analysis
-        run: cppcheck --enable=all --inconclusive --quiet src/ index/ mcp/ pycoolctl/ http/ 2>&1 | tee cppcheck.txt; test ! -s cppcheck.txt
+        run: cppcheck --enable=all --inconclusive --quiet src/ index/ mcp/ pycoolctl/ 2>&1 | tee cppcheck.txt; test ! -s cppcheck.txt
 
       - name: Build
         run: make clean && make

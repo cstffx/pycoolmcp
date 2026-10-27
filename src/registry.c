@@ -19,7 +19,8 @@ static char *state_dir(void)
 		written = asprintf(&dir, "%s/pycools", base);
 	} else {
 		const char *home = getenv("HOME");
-		if (!home) home = ".";
+		if (!home) { home = ".";
+}
 		written = asprintf(&dir, "%s/.local/state/pycools", home);
 	}
 	if (written < 0 || !dir || getenv("PYCOOL_REGISTRY_FAIL")) {
@@ -51,7 +52,8 @@ char *registry_dir(void)
 int registry_register(const char *root, const char *dbpath)
 {
 	char *dir = state_dir();
-	if (!dir) return -1;
+	if (!dir) { return -1;
+}
 	char path[8192];
 	int n = snprintf(path, sizeof(path), "%s/%d.reg", dir, (int)getpid());
 	if (n < 0 || (size_t)n >= sizeof(path)) { free(dir); return -1; }
@@ -66,7 +68,8 @@ int registry_register(const char *root, const char *dbpath)
 int registry_unregister(void)
 {
 	char *dir = state_dir();
-	if (!dir) return -1;
+	if (!dir) { return -1;
+}
 	char path[8192];
 	int n = snprintf(path, sizeof(path), "%s/%d.reg", dir, (int)getpid());
 	if (n < 0 || (size_t)n >= sizeof(path)) { free(dir); return -1; }
@@ -77,7 +80,8 @@ int registry_unregister(void)
 
 static int is_alive(pid_t pid)
 {
-	if (kill(pid, 0) == 0) return 1;
+	if (kill(pid, 0) == 0) { return 1;
+}
 	return errno != ESRCH ? 1 : 0; /* permission issues count as alive */
 }
 
@@ -85,21 +89,26 @@ int registry_list_paths(char ***roots, char ***dbpaths, pid_t **pids, int *count
 {
 	*roots = NULL; *dbpaths = NULL; *pids = NULL; *count = 0;
 	char *dir = state_dir();
-	if (!dir) return -1;
+	if (!dir) { return -1;
+}
 	DIR *d = opendir(dir);
 	if (!d) { free(dir); return -1; }
 	int cap = 0;
 	const struct dirent *ent;
 	while ((ent = readdir(d)) != NULL) {
-		if (ent->d_name[0] == '.') continue;
+		if (ent->d_name[0] == '.') { continue;
+}
 		size_t L = strlen(ent->d_name);
-		if (L < 5 || strcmp(ent->d_name + L - 4, ".reg") != 0) continue;
+		if (L < 5 || strcmp(ent->d_name + L - 4, ".reg") != 0) { continue;
+}
 		char path[8192];
 		snprintf(path, sizeof(path), "%s/%s", dir, ent->d_name);
 		FILE *f = fopen(path, "r");
-		if (!f) continue;
+		if (!f) { continue;
+}
 		int pid;
-		char root[4096], dbp[4096];
+		char root[4096];
+		char dbp[4096];
 		if (fscanf(f, "%d\n%4095[^\n]\n%4095[^\n]\n", &pid, root, dbp) < 2) {
 			fclose(f);
 			continue;
@@ -128,26 +137,33 @@ int registry_list_paths(char ***roots, char ***dbpaths, pid_t **pids, int *count
 // cppcheck-suppress unusedFunction
 int registry_stop(pid_t pid)
 {
-	if (kill(pid, SIGTERM) != 0) return -1;
+	if (kill(pid, SIGTERM) != 0) { return -1;
+}
 	return 0;
 }
 
 int registry_overlap(const char *root)
 {
 	char *r = realpath(root, NULL);
-	if (!r) return 0;
-	char **roots, **dbpaths; pid_t *pids; int n;
+	if (!r) { return 0;
+}
+	char **roots;
+	char **dbpaths; pid_t *pids; int n;
 	if (registry_list_paths(&roots, &dbpaths, &pids, &n) != 0) { free(r); return 0; }
 	int overlap = 0;
 	for (int i = 0; i < n; i++) {
 		char *oroot = realpath(roots[i], NULL);
-		if (!oroot) continue;
-		size_t lr = strlen(r), lo = strlen(oroot);
-		if (strcmp(r, oroot) == 0) overlap = 1;
-		else if (lr > lo && strncmp(r, oroot, lo) == 0 && r[lo] == '/') overlap = 1;
-		else if (lo > lr && strncmp(oroot, r, lr) == 0 && oroot[lr] == '/') overlap = 1;
+		if (!oroot) { continue;
+}
+		size_t lr = strlen(r);
+		size_t lo = strlen(oroot);
+		if (strcmp(r, oroot) == 0) { overlap = 1;
+		} else if (lr > lo && strncmp(r, oroot, lo) == 0 && r[lo] == '/') { overlap = 1;
+		} else if (lo > lr && strncmp(oroot, r, lr) == 0 && oroot[lr] == '/') { overlap = 1;
+}
 		free(oroot);
-		if (overlap) break;
+		if (overlap) { break;
+}
 	}
 	for (int i = 0; i < n; i++) { free(roots[i]); free(dbpaths[i]); }
 	free(roots); free(dbpaths); free(pids);
@@ -158,10 +174,12 @@ int registry_overlap(const char *root)
 char *registry_default_db(void)
 {
 	const char *env = getenv("PYCOOL_DB");
-	if (env && env[0]) return strdup(env);
+	if (env && env[0]) { return strdup(env);
+}
 
 	char cwd[4096];
-	if (!getcwd(cwd, sizeof(cwd))) cwd[0] = '\0';
+	if (!getcwd(cwd, sizeof(cwd))) { cwd[0] = '\0';
+}
 	if (cwd[0]) {
 		char cur[4096];
 		strncpy(cur, cwd, sizeof(cur)-1);
@@ -170,14 +188,17 @@ char *registry_default_db(void)
 			char path[8192];
 			snprintf(path, sizeof(path), "%s/.pycool/index.db", cur);
 			struct stat st;
-			if (stat(path, &st) == 0) return strdup(path);
+			if (stat(path, &st) == 0) { return strdup(path);
+}
 			char *slash = strrchr(cur, '/');
-			if (!slash || slash == cur) break;
+			if (!slash || slash == cur) { break;
+}
 			*slash = '\0';
 		}
 	}
 
-	char **roots, **dbpaths; pid_t *pids; int n;
+	char **roots;
+	char **dbpaths; pid_t *pids; int n;
 	if (registry_list_paths(&roots, &dbpaths, &pids, &n) == 0 && n > 0 && dbpaths && dbpaths[0]) {
 		char *r = strdup(dbpaths[0]);
 		for (int i = 0; i < n; i++) { free(roots[i]); free(dbpaths[i]); }

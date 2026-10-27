@@ -11,7 +11,8 @@
 // cppcheck-suppress staticFunction
 void extract_assign_targets(PyObject *target, Ctx *ctx, int line)
 {
-	if (!target) return;
+	if (!target) { return;
+}
 	PyObject *cls = PyObject_GetAttrString(target, "__class__");
 	PyObject *cname = cls ? PyObject_GetAttrString(cls, "__name__") : NULL;
 	const char *tname = cname ? PyUnicode_AsUTF8(cname) : NULL;
@@ -46,15 +47,20 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 	PyObject *node = node_ptr;
 	sqlite3_int64 sid;
 	if (strcmp(type, "ClassDef") == 0) {
-		char *bases = NULL, *methods = NULL, *docstring = NULL, *decorators = NULL;
+		char *bases = NULL;
+		char *methods = NULL;
+		char *docstring = NULL;
+		char *decorators = NULL;
 		sid = 0;
-		if (name) index_add_symbol(ctx->db, ctx->file_id, name, "class", lineno, 0, NULL, &sid);
+		if (name) { index_add_symbol(ctx->db, ctx->file_id, name, "class", lineno, 0, NULL, &sid);
+}
 		PyObject *ast_mod = PyImport_ImportModule("ast");
 		if (ast_mod && node) {
 			/* bases */
 			PyObject *bases_obj = PyObject_GetAttrString(node, "bases");
 			if (bases_obj && PyList_Check(bases_obj)) {
-				size_t cap = 256, len = 0;
+				size_t cap = 256;
+				size_t len = 0;
 				bases = malloc(cap);
 				bases[0] = '\0';
 				Py_ssize_t nb = PyList_Size(bases_obj);
@@ -63,26 +69,31 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 					PyObject *u = NULL;
 					PyObject *unparse = PyObject_GetAttrString(ast_mod, "unparse");
 					if (unparse) { u = PyObject_CallFunction(unparse, "(O)", b); Py_DECREF(unparse); }
-					if (!u) u = PyObject_Str(b);
+					if (!u) { u = PyObject_Str(b);
+}
 					if (u) {
 						const char *bs = PyUnicode_AsUTF8(u);
 						if (bs) {
 							size_t add = strlen(bs) + 2;
-							if (len + add >= cap) { cap = (len+add)*2; char *tmp = realloc(bases, cap); if (tmp) bases = tmp; }
-							if (len > 0) bases[len++] = ',';
+							if (len + add >= cap) { cap = (len+add)*2; char *tmp = realloc(bases, cap); if (tmp) { bases = tmp; 
+}}
+							if (len > 0) { bases[len++] = ',';
+}
 							strcpy(bases + len, bs);
 							len += strlen(bs);
 						}
 						Py_DECREF(u);
 					}
 				}
-				if (bases) bases[len] = '\0';
+				if (bases) { bases[len] = '\0';
+}
 			}
 			Py_XDECREF(bases_obj);
 			/* methods */
 			PyObject *body = PyObject_GetAttrString(node, "body");
 			if (body && PyList_Check(body)) {
-				size_t cap = 256, len = 0;
+				size_t cap = 256;
+				size_t len = 0;
 				methods = malloc(cap);
 				methods[0] = '\0';
 				Py_ssize_t nb = PyList_Size(body);
@@ -115,7 +126,8 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 									PyObject *u = PyObject_CallFunction(unparse_fn, "(O)", dec);
 									const char *ds = u ? (PyUnicode_Check(u) ? PyUnicode_AsUTF8(u) : NULL) : NULL;
 									if (ds) {
-										if (dlen > 0 && dlen + 1 < sizeof(dec_prefix)) dec_prefix[dlen++] = ' ';
+										if (dlen > 0 && dlen + 1 < sizeof(dec_prefix)) { dec_prefix[dlen++] = ' ';
+}
 										size_t dl = strlen(ds);
 										if (dlen + dl + 2 < sizeof(dec_prefix)) {
 											dec_prefix[dlen++] = '@';
@@ -132,14 +144,18 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 							char prefix[600];
 							snprintf(prefix, sizeof(prefix), "%s%s%s", dec_prefix, dec_prefix[0] ? " " : "", is_async ? "async " : "");
 							if (ret_s) {
-								if (asprintf(&sig, "%s%s(%s) -> %s", prefix, ms, args_s ? args_s : "", ret_s) == -1) sig = NULL;
+								if (asprintf(&sig, "%s%s(%s) -> %s", prefix, ms, args_s ? args_s : "", ret_s) == -1) { sig = NULL;
+}
 							} else {
-								if (asprintf(&sig, "%s%s(%s)", prefix, ms, args_s ? args_s : "") == -1) sig = NULL;
+								if (asprintf(&sig, "%s%s(%s)", prefix, ms, args_s ? args_s : "") == -1) { sig = NULL;
+}
 							}
 							if (sig) {
 								size_t add = strlen(sig) + 2;
-								if (len + add >= cap) { cap = (len+add)*2; char *tmp = realloc(methods, cap); if (tmp) methods = tmp; }
-								if (len > 0) methods[len++] = ',';
+								if (len + add >= cap) { cap = (len+add)*2; char *tmp = realloc(methods, cap); if (tmp) { methods = tmp; 
+}}
+								if (len > 0) { methods[len++] = ',';
+}
 								strcpy(methods + len, sig);
 								len += strlen(sig);
 								free(sig);
@@ -152,7 +168,8 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 								PyObject *ds = PyObject_CallFunction(gds, "(O)", item);
 								if (ds && ds != Py_None) {
 									const char *dstr = PyUnicode_AsUTF8(ds);
-									if (dstr) mdoc = strdup(dstr);
+									if (dstr) { mdoc = strdup(dstr);
+}
 								}
 								Py_XDECREF(ds);
 								Py_DECREF(gds);
@@ -163,12 +180,15 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 								sqlite3_int64 mid = 0;
 								int mline = lineno;
 								PyObject *mln_obj = PyObject_GetAttrString(item, "lineno");
-								if (mln_obj) { mline = (int)PyLong_AsLong(mln_obj); if (PyErr_Occurred()) PyErr_Clear(); Py_DECREF(mln_obj); } else PyErr_Clear();
+								if (mln_obj) { mline = (int)PyLong_AsLong(mln_obj); if (PyErr_Occurred()) { PyErr_Clear(); 
+}Py_DECREF(mln_obj); } else { PyErr_Clear();
+}
 								int mend = 0;
 								PyObject *end_lineno_obj = PyObject_GetAttrString(item, "end_lineno");
 								if (end_lineno_obj) {
 									mend = (int)PyLong_AsLong(end_lineno_obj);
-									if (PyErr_Occurred()) PyErr_Clear();
+									if (PyErr_Occurred()) { PyErr_Clear();
+}
 									Py_DECREF(end_lineno_obj);
 								} else {
 									PyErr_Clear();
@@ -187,11 +207,13 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 									PyObject *combined = PyList_New(0);
 									if (posonly && PyList_Check(posonly)) {
 										Py_ssize_t np = PyList_Size(posonly);
-										for (Py_ssize_t i = 0; i < np; i++) PyList_Append(combined, PyList_GetItem(posonly, i));
+										for (Py_ssize_t i = 0; i < np; i++) { PyList_Append(combined, PyList_GetItem(posonly, i));
+}
 									}
 									if (pos && PyList_Check(pos)) {
 										Py_ssize_t np = PyList_Size(pos);
-										for (Py_ssize_t i = 0; i < np; i++) PyList_Append(combined, PyList_GetItem(pos, i));
+										for (Py_ssize_t i = 0; i < np; i++) { PyList_Append(combined, PyList_GetItem(pos, i));
+}
 									}
 									Py_ssize_t ncombined = PyList_Check(combined) ? PyList_Size(combined) : 0;
 									Py_ssize_t ndefaults = (defaults && PyList_Check(defaults)) ? PyList_Size(defaults) : 0;
@@ -211,12 +233,14 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 											PyObject *dstr = (unparse_fn && dobj) ? PyObject_CallFunction(unparse_fn, "(O)", dobj) : NULL;
 											if (dstr && PyUnicode_Check(dstr)) {
 												const char *ds = PyUnicode_AsUTF8(dstr);
-												if (ds) def_s = strdup(ds);
+												if (ds) { def_s = strdup(ds);
+}
 											}
 											Py_XDECREF(dstr);
 										}
 										const char *kind = "positional";
-										if (posonly && PyList_Check(posonly) && i < PyList_Size(posonly)) kind = "positional-only";
+										if (posonly && PyList_Check(posonly) && i < PyList_Size(posonly)) { kind = "positional-only";
+}
 										index_add_method_arg(ctx->db, mid, an, ann_s, def_s, kind, (int)i);
 										free(def_s);
 										Py_XDECREF(ann_str);
@@ -257,7 +281,8 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 													PyObject *dstr = PyObject_CallFunction(unparse_fn, "(O)", dobj);
 													if (dstr && PyUnicode_Check(dstr)) {
 														const char *ds = PyUnicode_AsUTF8(dstr);
-														if (ds) def_s = strdup(ds);
+														if (ds) { def_s = strdup(ds);
+}
 													}
 													Py_XDECREF(dstr);
 												}
@@ -331,11 +356,14 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 											PyObject *largs_str = (unparse_fn && largs) ? PyObject_CallFunction(unparse_fn, "(O)", largs) : NULL;
 											const char *largs_s = (largs_str && PyUnicode_Check(largs_str)) ? PyUnicode_AsUTF8(largs_str) : "";
 											char *sig = NULL;
-											if (asprintf(&sig, "%s(%s)", methname, largs_s ? largs_s : "") == -1) sig = NULL;
+											if (asprintf(&sig, "%s(%s)", methname, largs_s ? largs_s : "") == -1) { sig = NULL;
+}
 											if (sig) {
 												size_t add = strlen(sig) + 2;
-												if (len + add >= cap) { cap = (len+add)*2; char *tmp = realloc(methods, cap); if (tmp) methods = tmp; }
-												if (len > 0) methods[len++] = ',';
+												if (len + add >= cap) { cap = (len+add)*2; char *tmp = realloc(methods, cap); if (tmp) { methods = tmp; 
+}}
+												if (len > 0) { methods[len++] = ',';
+}
 												strcpy(methods + len, sig);
 												len += strlen(sig);
 												free(sig);
@@ -348,9 +376,11 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 												PyObject *end_lineno_obj = PyObject_GetAttrString(item, "end_lineno");
 												if (end_lineno_obj) {
 													mend = (int)PyLong_AsLong(end_lineno_obj);
-													if (PyErr_Occurred()) PyErr_Clear();
+													if (PyErr_Occurred()) { PyErr_Clear();
+}
 													Py_DECREF(end_lineno_obj);
-												} else PyErr_Clear();
+												} else { PyErr_Clear();
+}
 												index_add_method(ctx->db, sid, methname, mline, mend, 0, "@lambda", NULL, NULL, &mid);
 												/* args */
 												if (mid > 0 && largs) {
@@ -364,8 +394,12 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 													PyObject *kwarg = PyObject_GetAttrString(largs, "kwarg");
 
 													PyObject *combined = PyList_New(0);
-													if (posonly && PyList_Check(posonly)) for (Py_ssize_t i=0;i<PyList_Size(posonly);i++) PyList_Append(combined, PyList_GetItem(posonly,i));
-													if (pos && PyList_Check(pos)) for (Py_ssize_t i=0;i<PyList_Size(pos);i++) PyList_Append(combined, PyList_GetItem(pos,i));
+													if (posonly && PyList_Check(posonly)) { for (Py_ssize_t i=0;i<PyList_Size(posonly);i++) { PyList_Append(combined, PyList_GetItem(posonly,i));
+}
+}
+													if (pos && PyList_Check(pos)) { for (Py_ssize_t i=0;i<PyList_Size(pos);i++) { PyList_Append(combined, PyList_GetItem(pos,i));
+}
+}
 													Py_ssize_t ncombined = PyList_Check(combined) ? PyList_Size(combined) : 0;
 													Py_ssize_t ndefaults = (defaults && PyList_Check(defaults)) ? PyList_Size(defaults) : 0;
 													for (Py_ssize_t i=0;i<ncombined;i++) {
@@ -381,11 +415,13 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 														if (def_index >= 0 && defaults && PyList_Check(defaults)) {
 															PyObject *dobj = PyList_GetItem(defaults, def_index);
 															PyObject *dstr = (unparse_fn && dobj) ? PyObject_CallFunction(unparse_fn,"(O)",dobj) : NULL;
-															if (dstr && PyUnicode_Check(dstr)) { const char *ds=PyUnicode_AsUTF8(dstr); if (ds) def_s=strdup(ds); }
+															if (dstr && PyUnicode_Check(dstr)) { const char *ds=PyUnicode_AsUTF8(dstr); if (ds) { def_s=strdup(ds); 
+}}
 															Py_XDECREF(dstr);
 														}
 														const char *kind = "positional";
-														if (posonly && PyList_Check(posonly) && i < PyList_Size(posonly)) kind = "positional-only";
+														if (posonly && PyList_Check(posonly) && i < PyList_Size(posonly)) { kind = "positional-only";
+}
 														index_add_method_arg(ctx->db, mid, an, ann_s, def_s, kind, (int)i);
 														free(def_s);
 														Py_XDECREF(ann_str);
@@ -418,7 +454,8 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 																PyObject *dobj = PyList_GetItem(kw_defaults,i);
 																if (dobj && dobj != Py_None && unparse_fn) {
 																	PyObject *dstr = PyObject_CallFunction(unparse_fn,"(O)",dobj);
-																	if (dstr && PyUnicode_Check(dstr)) { const char *ds=PyUnicode_AsUTF8(dstr); if (ds) def_s=strdup(ds); }
+																	if (dstr && PyUnicode_Check(dstr)) { const char *ds=PyUnicode_AsUTF8(dstr); if (ds) { def_s=strdup(ds); 
+}}
 																	Py_XDECREF(dstr);
 																}
 															}
@@ -453,14 +490,18 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 											const char *vs = (val_str && PyUnicode_Check(val_str)) ? PyUnicode_AsUTF8(val_str) : NULL;
 											char *sig = NULL;
 											if (vs) {
-												if (asprintf(&sig, "%s = %s", methname, vs) == -1) sig = NULL;
+												if (asprintf(&sig, "%s = %s", methname, vs) == -1) { sig = NULL;
+}
 											} else {
-												if (asprintf(&sig, "%s = <expr>", methname) == -1) sig = NULL;
+												if (asprintf(&sig, "%s = <expr>", methname) == -1) { sig = NULL;
+}
 											}
 											if (sig) {
 												size_t add = strlen(sig) + 2;
-												if (len + add >= cap) { cap = (len+add)*2; char *tmp = realloc(methods, cap); if (tmp) methods = tmp; }
-												if (len > 0) methods[len++] = ',';
+												if (len + add >= cap) { cap = (len+add)*2; char *tmp = realloc(methods, cap); if (tmp) { methods = tmp; 
+}}
+												if (len > 0) { methods[len++] = ',';
+}
 												strcpy(methods + len, sig);
 												len += strlen(sig);
 												free(sig);
@@ -471,9 +512,11 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 												int mend = lineno;
 												if (end_lineno_obj) {
 													mend = (int)PyLong_AsLong(end_lineno_obj);
-													if (PyErr_Occurred()) PyErr_Clear();
+													if (PyErr_Occurred()) { PyErr_Clear();
+}
 													Py_DECREF(end_lineno_obj);
-												} else PyErr_Clear();
+												} else { PyErr_Clear();
+}
 												index_add_method(ctx->db, sid, methname, lineno, mend, 0, "assigned", NULL, NULL, &mid);
 											}
 											Py_XDECREF(val_str);
@@ -494,7 +537,8 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 					Py_XDECREF(iname);
 					Py_XDECREF(icls);
 				}
-				if (methods) methods[len] = '\0';
+				if (methods) { methods[len] = '\0';
+}
 			}
 			Py_XDECREF(body);
 			/* docstring */
@@ -503,7 +547,8 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 				PyObject *ds = PyObject_CallFunction(gds, "(O)", node);
 				if (ds && ds != Py_None) {
 					const char *dstr = PyUnicode_AsUTF8(ds);
-					if (dstr) docstring = strdup(dstr);
+					if (dstr) { docstring = strdup(dstr);
+}
 				}
 				Py_XDECREF(ds);
 				Py_DECREF(gds);
@@ -511,7 +556,8 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 			/* decorators */
 			PyObject *decs = PyObject_GetAttrString(node, "decorator_list");
 			if (decs && PyList_Check(decs)) {
-				size_t cap = 256, len = 0;
+				size_t cap = 256;
+				size_t len = 0;
 				decorators = malloc(cap);
 				decorators[0] = '\0';
 				Py_ssize_t nd = PyList_Size(decs);
@@ -520,29 +566,35 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 					PyObject *unparse = PyObject_GetAttrString(ast_mod, "unparse");
 					PyObject *u = NULL;
 					if (unparse) { u = PyObject_CallFunction(unparse, "(O)", dec); Py_DECREF(unparse); }
-					if (!u) u = PyObject_Str(dec);
+					if (!u) { u = PyObject_Str(dec);
+}
 					if (u) {
 						const char *ds = PyUnicode_AsUTF8(u);
 						if (ds) {
 							size_t add = strlen(ds) + 2;
-							if (len + add >= cap) { cap = (len+add)*2; char *tmp = realloc(decorators, cap); if (tmp) decorators = tmp; }
-							if (len > 0) decorators[len++] = ',';
+							if (len + add >= cap) { cap = (len+add)*2; char *tmp = realloc(decorators, cap); if (tmp) { decorators = tmp; 
+}}
+							if (len > 0) { decorators[len++] = ',';
+}
 							strcpy(decorators + len, ds);
 							len += strlen(ds);
 						}
 						Py_DECREF(u);
 					}
 				}
-				if (decorators) decorators[len] = '\0';
+				if (decorators) { decorators[len] = '\0';
+}
 			}
 			Py_XDECREF(decs);
 		}
-		if (ast_mod) Py_DECREF(ast_mod);
+		if (ast_mod) { Py_DECREF(ast_mod);
+}
 		int end_line = 0;
 		PyObject *end_lineno_obj = PyObject_GetAttrString(node, "end_lineno");
 		if (end_lineno_obj) {
 			end_line = (int)PyLong_AsLong(end_lineno_obj);
-			if (PyErr_Occurred()) PyErr_Clear();
+			if (PyErr_Occurred()) { PyErr_Clear();
+}
 			Py_DECREF(end_lineno_obj);
 		} else {
 			PyErr_Clear();
@@ -550,7 +602,8 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 		index_add_class_detail(ctx->db, sid, bases, methods, docstring, decorators, end_line);
 		free(bases); free(methods); free(docstring); free(decorators);
 	} else if (strcmp(type, "FunctionDef") == 0 || strcmp(type, "AsyncFunctionDef") == 0) {
-		if (name) index_add_symbol(ctx->db, ctx->file_id, name, "function", lineno, 0, NULL, &sid);
+		if (name) { index_add_symbol(ctx->db, ctx->file_id, name, "function", lineno, 0, NULL, &sid);
+}
 	} else if (strcmp(type, "Assign") == 0) {
 		PyObject *targets = PyObject_GetAttrString(node, "targets");
 		PyObject *value = PyObject_GetAttrString(node, "value");
@@ -601,16 +654,19 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 									PyObject *largs = PyObject_GetAttrString(value, "args");
 									PyObject *la = unparse_fn && largs ? PyObject_CallFunction(unparse_fn, "(O)", largs) : NULL;
 									const char *las = (la && PyUnicode_Check(la)) ? PyUnicode_AsUTF8(la) : "";
-									if (asprintf(&sig, "%s(%s)", methodname, las ? las : "") == -1) sig = NULL;
+									if (asprintf(&sig, "%s(%s)", methodname, las ? las : "") == -1) { sig = NULL;
+}
 									Py_XDECREF(la);
 									Py_XDECREF(largs);
 								} else {
 									PyObject *vs = unparse_fn && value ? PyObject_CallFunction(unparse_fn, "(O)", value) : NULL;
 									const char *vstr = (vs && PyUnicode_Check(vs)) ? PyUnicode_AsUTF8(vs) : NULL;
 									if (vstr) {
-										if (asprintf(&sig, "%s = %s", methodname, vstr) == -1) sig = NULL;
+										if (asprintf(&sig, "%s = %s", methodname, vstr) == -1) { sig = NULL;
+}
 									} else {
-										if (asprintf(&sig, "%s = <expr>", methodname) == -1) sig = NULL;
+										if (asprintf(&sig, "%s = <expr>", methodname) == -1) { sig = NULL;
+}
 									}
 									Py_XDECREF(vs);
 								}
@@ -623,8 +679,10 @@ void on_node(const char *type, int lineno, const char *name, void *node_ptr, voi
 										if (sqlite3_step(us) == SQLITE_ROW) {
 											const char *old = (const char *)sqlite3_column_text(us, 0);
 											char *newm = NULL;
-											if (old && old[0]) { if (asprintf(&newm, "%s,%s", old, sig) == -1) newm = NULL; }
-											else { if (asprintf(&newm, "%s", sig) == -1) newm = NULL; }
+											if (old && old[0]) { if (asprintf(&newm, "%s,%s", old, sig) == -1) { newm = NULL; 
+}}
+											else { if (asprintf(&newm, "%s", sig) == -1) { newm = NULL; 
+}}
 											sqlite3_finalize(us);
 											if (newm) {
 												sqlite3_stmt *up;

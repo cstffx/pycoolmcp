@@ -39,8 +39,9 @@ static void print_json_str(FILE *out, const char *s)
 				case '\r': fputs("\\r", out); break;
 				case '\t': fputs("\\t", out); break;
 				default:
-					if (*p < 0x20) fprintf(out, "\\u%04x", *p);
-					else fputc(*p, out);
+					if (*p < 0x20) { fprintf(out, "\\u%04x", *p);
+					} else { fputc(*p, out);
+}
 			}
 		}
 	}
@@ -49,8 +50,10 @@ static void print_json_str(FILE *out, const char *s)
 
 static void print_class_body(FILE *out, const char *path, long start, long end)
 {
-	if (!path || start <= 0) return;
-	if (end < start) end = start;
+	if (!path || start <= 0) { return;
+}
+	if (end < start) { end = start;
+}
 	FILE *f = fopen(path, "r");
 	if (!f) { perror(path); return; }
 	char *line = NULL;
@@ -59,8 +62,10 @@ static void print_class_body(FILE *out, const char *path, long start, long end)
 	long cur = 0;
 	while ((len = getline(&line, &cap, f)) != -1) {
 		cur++;
-		if (cur >= start && cur <= end) fputs(line, out);
-		if (cur >= end) break;
+		if (cur >= start && cur <= end) { fputs(line, out);
+}
+		if (cur >= end) { break;
+}
 	}
 	free(line);
 	fclose(f);
@@ -120,7 +125,8 @@ int class_command(int argc, char **argv, FILE *out)
 	char *resolved_db = NULL;
 	if (!dbpath) {
 		if (pidstr) {
-			char **roots, **dbpaths; pid_t *pids; int n;
+			char **roots;
+			char **dbpaths; pid_t *pids; int n;
 			if (registry_list_paths(&roots, &dbpaths, &pids, &n) != 0 || n == 0) {
 				fprintf(stderr, "no running instance; pass --db PATH\n");
 				return 1;
@@ -135,8 +141,8 @@ int class_command(int argc, char **argv, FILE *out)
 			}
 		} else {
 			resolved_db = registry_default_db();
-			if (resolved_db) dbpath = resolved_db;
-			else {
+			if (resolved_db) { dbpath = resolved_db;
+			} else {
 				fprintf(stderr, "no running instance and no default db; pass --db PATH or set PYCOOL_DB\n");
 				return 1;
 			}
@@ -171,7 +177,8 @@ int class_command(int argc, char **argv, FILE *out)
 		int nfiles = 0;
 		if (sqlite3_prepare_v2(db, csql, -1, &cstmt, NULL) == SQLITE_OK) {
 			sqlite3_bind_text(cstmt, 1, name, -1, SQLITE_TRANSIENT);
-			if (sqlite3_step(cstmt) == SQLITE_ROW) nfiles = sqlite3_column_int(cstmt, 0);
+			if (sqlite3_step(cstmt) == SQLITE_ROW) { nfiles = sqlite3_column_int(cstmt, 0);
+}
 			sqlite3_finalize(cstmt);
 		}
 		if (nfiles > 5) {
@@ -218,17 +225,20 @@ int class_command(int argc, char **argv, FILE *out)
 			return 1;
 		}
 		sqlite3_bind_text(rstmt, 1, name, -1, SQLITE_TRANSIENT);
-		if (file) sqlite3_bind_text(rstmt, 2, file, -1, SQLITE_TRANSIENT);
+		if (file) { sqlite3_bind_text(rstmt, 2, file, -1, SQLITE_TRANSIENT);
+}
 		/* compress refs: path:12,15,18-22 (+N) */
 		char curpath[4096] = "";
 		int *lines_arr = NULL;
-		int nlines = 0, caplines = 0;
+		int nlines = 0;
+		int caplines = 0;
 		int total = 0;
 
 		while (sqlite3_step(rstmt) == SQLITE_ROW) {
 			const char *p = (const char *)sqlite3_column_text(rstmt, 0);
 			long ln = sqlite3_column_int64(rstmt, 1);
-			if (!p) p = "";
+			if (!p) { p = "";
+}
 			if (strcmp(curpath, p) != 0) {
 				/* flush previous */
 				if (curpath[0] && nlines > 0) {
@@ -240,13 +250,16 @@ int class_command(int argc, char **argv, FILE *out)
 						int start = lines_arr[i];
 						int end = start;
 						while (i + 1 < nlines && lines_arr[i+1] == end + 1) { i++; end = lines_arr[i]; }
-						if (!first) fprintf(out, ",");
-						if (start == end) fprintf(out, "%d", start);
-						else fprintf(out, "%d-%d", start, end);
+						if (!first) { fprintf(out, ",");
+}
+						if (start == end) { fprintf(out, "%d", start);
+						} else { fprintf(out, "%d-%d", start, end);
+}
 						first = 0;
 						i++;
 					}
-					if (total > nlines) fprintf(out, " (+%d)", total - nlines);
+					if (total > nlines) { fprintf(out, " (+%d)", total - nlines);
+}
 					fprintf(out, "\n");
 				}
 				strncpy(curpath, p, sizeof(curpath)-1);
@@ -257,7 +270,8 @@ int class_command(int argc, char **argv, FILE *out)
 			}
 			if (nlines == caplines) {
 				caplines = caplines ? caplines * 2 : 64;
-				int *tmp_lines = realloc(lines_arr, caplines * sizeof(int)); if (tmp_lines) lines_arr = tmp_lines;
+				int *tmp_lines = realloc(lines_arr, caplines * sizeof(int)); if (tmp_lines) { lines_arr = tmp_lines;
+}
 			}
 			lines_arr[nlines++] = (int)ln;
 			total++;
@@ -270,13 +284,16 @@ int class_command(int argc, char **argv, FILE *out)
 				int start = lines_arr[i];
 				int end = start;
 				while (i + 1 < nlines && lines_arr[i+1] == end + 1) { i++; end = lines_arr[i]; }
-				if (!first) fprintf(out, ",");
-				if (start == end) fprintf(out, "%d", start);
-				else fprintf(out, "%d-%d", start, end);
+				if (!first) { fprintf(out, ",");
+}
+				if (start == end) { fprintf(out, "%d", start);
+				} else { fprintf(out, "%d-%d", start, end);
+}
 				first = 0;
 				i++;
 			}
-			if (total > nlines) fprintf(out, " (+%d)", total - nlines);
+			if (total > nlines) { fprintf(out, " (+%d)", total - nlines);
+}
 			fprintf(out, "\n");
 		}
 		free(lines_arr);
@@ -309,13 +326,16 @@ int class_command(int argc, char **argv, FILE *out)
 		return 1;
 	}
 	int bind_idx = 1;
-	if (name) sqlite3_bind_text(stmt, bind_idx++, name, -1, SQLITE_TRANSIENT);
-	if (file) sqlite3_bind_text(stmt, bind_idx++, file, -1, SQLITE_TRANSIENT);
+	if (name) { sqlite3_bind_text(stmt, bind_idx++, name, -1, SQLITE_TRANSIENT);
+}
+	if (file) { sqlite3_bind_text(stmt, bind_idx++, file, -1, SQLITE_TRANSIENT);
+}
 
 	int all = (info == NULL);
 	int had_rows = 0;
 	int json_first = 1;
-	if (json_mode) fprintf(out, "[\n");
+	if (json_mode) { fprintf(out, "[\n");
+}
 	while (sqlite3_step(stmt) == SQLITE_ROW) {
 		const char *n = (const char *)sqlite3_column_text(stmt, 0);
 		const char *path = (const char *)sqlite3_column_text(stmt, 1);
@@ -347,48 +367,60 @@ int class_command(int argc, char **argv, FILE *out)
 				if (sqlite3_prepare_v2(db, msql, -1, &mstmt, NULL) == SQLITE_OK) {
 					sqlite3_bind_text(mstmt, 1, n ? n : name, -1, SQLITE_TRANSIENT);
 					sqlite3_bind_text(mstmt, 2, method, -1, SQLITE_TRANSIENT);
-					if (file) sqlite3_bind_text(mstmt, 3, file, -1, SQLITE_TRANSIENT);
+					if (file) { sqlite3_bind_text(mstmt, 3, file, -1, SQLITE_TRANSIENT);
+}
 					int found = 0;
 					while (sqlite3_step(mstmt) == SQLITE_ROW) {
 						const char *mpath = (const char *)sqlite3_column_text(mstmt, 0);
 						long mstart = sqlite3_column_int64(mstmt, 1);
 						long mend = sqlite3_column_int64(mstmt, 2);
-						if (mend <= 0) mend = mstart;
-						long rstart = mstart, rend = mend;
+						if (mend <= 0) { mend = mstart;
+}
+						long rstart = mstart;
+						long rend = mend;
 						if (lines) {
 							char buf[64]; strncpy(buf, lines, sizeof(buf)-1); buf[sizeof(buf)-1]='\0';
 							char *comma = strchr(buf, ',');
 							if (comma) { *comma='\0'; rstart = atoi(buf); rend = atoi(comma+1); }
 							else { rstart = atoi(buf); rend = rstart; }
 						}
-						if (rstart < mstart) rstart = mstart;
-						if (rend > mend) rend = mend;
-						if (max_lines > 0 && rend - rstart + 1 > max_lines) rend = rstart + max_lines - 1;
+						if (rstart < mstart) { rstart = mstart;
+}
+						if (rend > mend) { rend = mend;
+}
+						if (max_lines > 0 && rend - rstart + 1 > max_lines) { rend = rstart + max_lines - 1;
+}
 						print_class_body(out, mpath, rstart, rend);
 						found = 1;
 					}
 					sqlite3_finalize(mstmt);
-					if (!found) fprintf(stderr, "method not found: %s\n", method);
+					if (!found) { fprintf(stderr, "method not found: %s\n", method);
+}
 				}
 			} else {
 				long el = end_line > 0 ? end_line : line;
-				long rstart = line, rend = el;
+				long rstart = line;
+				long rend = el;
 				if (lines) {
 					char buf[64]; strncpy(buf, lines, sizeof(buf)-1); buf[sizeof(buf)-1]='\0';
 					char *comma = strchr(buf, ',');
 					if (comma) { *comma='\0'; rstart = atoi(buf); rend = atoi(comma+1); }
 					else { rstart = atoi(buf); rend = rstart; }
 				}
-				if (rstart < line) rstart = line;
-				if (rend > el) rend = el;
-				if (max_lines > 0 && rend - rstart + 1 > max_lines) rend = rstart + max_lines - 1;
+				if (rstart < line) { rstart = line;
+}
+				if (rend > el) { rend = el;
+}
+				if (max_lines > 0 && rend - rstart + 1 > max_lines) { rend = rstart + max_lines - 1;
+}
 				print_class_body(out, path, rstart, rend);
 			}
 			continue;
 		}
 
 		if (json_mode) {
-			if (!json_first) fprintf(out, ",\n");
+			if (!json_first) { fprintf(out, ",\n");
+}
 			json_first = 0;
 			fprintf(out, "  {\"name\":");
 			print_json_str(out, n);
@@ -407,11 +439,16 @@ int class_command(int argc, char **argv, FILE *out)
 			fprintf(out, "}");
 		} else if (compact_mode) {
 			fprintf(out, "%s %s:%ld", n ? n : "", path ? path : "", line);
-			if (bases && bases[0]) fprintf(out, " bases=%s", bases);
-			if (methods && methods[0]) fprintf(out, " methods=%s", methods);
-			if (doc && doc[0]) fprintf(out, " docstring=%s", doc);
-			if (decs && decs[0]) fprintf(out, " decorators=%s", decs);
-			if (end_line > 0) fprintf(out, " end_line=%ld", end_line);
+			if (bases && bases[0]) { fprintf(out, " bases=%s", bases);
+}
+			if (methods && methods[0]) { fprintf(out, " methods=%s", methods);
+}
+			if (doc && doc[0]) { fprintf(out, " docstring=%s", doc);
+}
+			if (decs && decs[0]) { fprintf(out, " decorators=%s", decs);
+}
+			if (end_line > 0) { fprintf(out, " end_line=%ld", end_line);
+}
 			fprintf(out, "\n");
 		} else {
 			/* print selected or all */
@@ -419,33 +456,42 @@ int class_command(int argc, char **argv, FILE *out)
 			const char *letters = all ? "ABCDEGJL" : info;
 			for (const char *p = letters; *p; p++) {
 				const char *fname = field_name(*p);
-				if (!fname) continue;
+				if (!fname) { continue;
+}
 				/* skip empty fields */
-				if (*p == 'D' && (!bases || !bases[0])) continue;
-				if (*p == 'E' && (!methods || !methods[0])) continue;
-				if (*p == 'G' && (!doc || !doc[0])) continue;
-				if (*p == 'J' && (!decs || !decs[0])) continue;
-				if (*p == 'K') continue; /* module=file, skip */
-				if (!first) fprintf(out, " | ");
+				if (*p == 'D' && (!bases || !bases[0])) { continue;
+}
+				if (*p == 'E' && (!methods || !methods[0])) { continue;
+}
+				if (*p == 'G' && (!doc || !doc[0])) { continue;
+}
+				if (*p == 'J' && (!decs || !decs[0])) { continue;
+}
+				if (*p == 'K') { continue; /* module=file, skip */
+}
+				if (!first) { fprintf(out, " | ");
+}
 				first = 0;
-				if (*p == 'A') fprintf(out, "name=%s", n ? n : "");
-				else if (*p == 'B') fprintf(out, "file=%s", path ? path : "");
-				else if (*p == 'C') fprintf(out, "line=%ld", line);
-				else if (*p == 'D') fprintf(out, "bases=%s", bases ? bases : "");
-				else if (*p == 'E') fprintf(out, "methods=%s", methods ? methods : "");
-				else if (*p == 'F') fprintf(out, "fields=n/a");
-				else if (*p == 'G') fprintf(out, "docstring=%s", doc ? doc : "");
-				else if (*p == 'H') fprintf(out, "types=n/a");
-				else if (*p == 'I') fprintf(out, "refs=n/a");
-				else if (*p == 'J') fprintf(out, "decorators=%s", decs ? decs : "");
-				else if (*p == 'L') fprintf(out, "end_line=%ld", end_line);
+				if (*p == 'A') { fprintf(out, "name=%s", n ? n : "");
+				} else if (*p == 'B') { fprintf(out, "file=%s", path ? path : "");
+				} else if (*p == 'C') { fprintf(out, "line=%ld", line);
+				} else if (*p == 'D') { fprintf(out, "bases=%s", bases ? bases : "");
+				} else if (*p == 'E') { fprintf(out, "methods=%s", methods ? methods : "");
+				} else if (*p == 'F') { fprintf(out, "fields=n/a");
+				} else if (*p == 'G') { fprintf(out, "docstring=%s", doc ? doc : "");
+				} else if (*p == 'H') { fprintf(out, "types=n/a");
+				} else if (*p == 'I') { fprintf(out, "refs=n/a");
+				} else if (*p == 'J') { fprintf(out, "decorators=%s", decs ? decs : "");
+				} else if (*p == 'L') { fprintf(out, "end_line=%ld", end_line);
+}
 			}
 			fprintf(out, "\n");
 		}
 	}
 	if (json_mode) {
-		if (had_rows) fprintf(out, "\n]\n");
-		else fprintf(out, "[]\n");
+		if (had_rows) { fprintf(out, "\n]\n");
+		} else { fprintf(out, "[]\n");
+}
 	}
 	sqlite3_finalize(stmt);
 	sqlite3_close(db);

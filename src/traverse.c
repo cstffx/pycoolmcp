@@ -5,8 +5,10 @@
 
 void ast_traverse(Ast *ast, ast_visitor visitor, void *userdata, AstSubscriber *subs)
 {
-	if (!ast || !ast->module) return;
-	if (!Py_IsInitialized()) Py_Initialize();
+	if (!ast || !ast->module) { return;
+}
+	if (!Py_IsInitialized()) { Py_Initialize();
+}
 
 	PyObject *ast_mod = PyImport_ImportModule("ast");
 	if (!ast_mod) { PyErr_Print(); return; }
@@ -29,7 +31,8 @@ void ast_traverse(Ast *ast, ast_visitor visitor, void *userdata, AstSubscriber *
 		int lineno = 0;
 		if (lineno_obj) {
 			lineno = (int)PyLong_AsLong(lineno_obj);
-			if (PyErr_Occurred()) PyErr_Clear();
+			if (PyErr_Occurred()) { PyErr_Clear();
+}
 			Py_DECREF(lineno_obj);
 		} else {
 			PyErr_Clear();
@@ -48,7 +51,8 @@ void ast_traverse(Ast *ast, ast_visitor visitor, void *userdata, AstSubscriber *
 			PyErr_Clear();
 		}
 
-		if (visitor) visitor(type, lineno, name, userdata);
+		if (visitor) { visitor(type, lineno, name, userdata);
+}
 
 		for (AstSubscriber *s = subs; s; s = s->next) {
 			int match = 0;
@@ -59,7 +63,8 @@ void ast_traverse(Ast *ast, ast_visitor visitor, void *userdata, AstSubscriber *
 			} else {
 				match = 1;
 			}
-			if (match && s->on_node) s->on_node(type, lineno, name, node, s->userdata);
+			if (match && s->on_node) { s->on_node(type, lineno, name, node, s->userdata);
+}
 		}
 
 		Py_XDECREF(name_obj);
@@ -68,7 +73,8 @@ void ast_traverse(Ast *ast, ast_visitor visitor, void *userdata, AstSubscriber *
 		Py_DECREF(node);
 		PyErr_Clear();
 	}
-	if (PyErr_Occurred()) PyErr_Print();
+	if (PyErr_Occurred()) { PyErr_Print();
+}
 
 	Py_DECREF(it);
 	Py_DECREF(walk_fn);

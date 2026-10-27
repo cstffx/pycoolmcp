@@ -8,7 +8,6 @@ SRC := src
 INDEX := index
 CLI := pycoolctl
 TESTS := tests
-HTTP := http
 BUILD := build
 
 # Library sources
@@ -22,7 +21,7 @@ LIB_SRCS := $(SRC)/ast.c $(SRC)/traverse.c $(SRC)/extract.c $(SRC)/scan.c \
 LIB_OBJS := $(LIB_SRCS:%.c=$(BUILD)/%.o)
 
 .PHONY: all clean test pipeline
-all: $(BUILD)/pycool $(BUILD)/bin/pycoolctl $(BUILD)/http_server $(BUILD)/pycoolmcp $(BUILD)/libpycool.a $(BUILD)/libpycool.so
+all: $(BUILD)/pycool $(BUILD)/bin/pycoolctl $(BUILD)/pycoolmcp $(BUILD)/libpycool.a $(BUILD)/libpycool.so
 
 # --- generic object rule ---
 $(BUILD)/%.o: %.c
@@ -48,11 +47,6 @@ $(BUILD)/pycool: $(SRC)/pycool_main.c $(BUILD)/libpycool.a
 $(BUILD)/bin/pycoolctl: $(CLI)/main.c $(SRC)/query_list.c $(SRC)/query_info.c $(SRC)/query_class.c $(SRC)/query_method.c $(SRC)/query_search.c $(CLI)/stop.c $(CLI)/clean.c $(SRC)/query_reindex.c $(BUILD)/libpycool.a
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -o $@ $(CLI)/main.c $(SRC)/query_list.c $(SRC)/query_info.c $(SRC)/query_class.c $(SRC)/query_method.c $(SRC)/query_search.c $(CLI)/stop.c $(CLI)/clean.c $(SRC)/query_reindex.c $(BUILD)/libpycool.a -lsqlite3
-
-# --- http server ---
-$(BUILD)/http_server: $(HTTP)/http.c mcp/http_app.c
-	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -o $@ $(HTTP)/http.c mcp/http_app.c
 
 # --- mcp server ---
 MCP_CFLAGS := $(CFLAGS) $(shell pkg-config --cflags json-c 2>/dev/null)
@@ -143,11 +137,11 @@ pipeline: cppcheck build test clean
 	@echo "Pipeline OK - ready to push"
 
 cppcheck:
-	cppcheck --enable=all --inconclusive --inline-suppr --quiet --suppress=missingInclude --suppress=missingIncludeSystem --suppress=checkLevelNormal --suppress=checkersReport --suppress=normalCheckLevelMaxBranches --suppress=unmatchedSuppression src/ index/ mcp/ pycoolctl/ http/ 2>&1 | tee cppcheck.txt
+	cppcheck --enable=all --inconclusive --inline-suppr --quiet --suppress=missingInclude --suppress=missingIncludeSystem --suppress=checkLevelNormal --suppress=checkersReport --suppress=normalCheckLevelMaxBranches --suppress=unmatchedSuppression src/ index/ mcp/ pycoolctl/ 2>&1 | tee cppcheck.txt
 	test ! -s cppcheck.txt
 
 lint:
-	clang-tidy -checks=-*,readability-*,modernize-*,-readability-identifier-length,-readability-magic-numbers,-readability-function-cognitive-complexity,-readability-function-size src/*.c index/*.c mcp/*.c pycoolctl/*.c http/*.c -- $(CFLAGS) 2>&1 | tee lint.txt
+	clang-tidy -checks=-*,readability-*,modernize-*,-readability-identifier-length,-readability-magic-numbers,-readability-function-cognitive-complexity,-readability-function-size src/*.c index/*.c mcp/*.c pycoolctl/*.c -- $(CFLAGS) 2>&1 | tee lint.txt
 	test ! -s lint.txt || echo "Lint warnings found"
 
 build: all

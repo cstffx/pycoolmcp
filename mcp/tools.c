@@ -15,24 +15,27 @@
 static const char *get_str(json_object *o, const char *key)
 {
 	json_object *v;
-	if (json_object_object_get_ex(o, key, &v) && json_object_is_type(v, json_type_string))
+	if (json_object_object_get_ex(o, key, &v) && json_object_is_type(v, json_type_string)) {
 		return json_object_get_string(v);
+}
 	return NULL;
 }
 
 static int get_bool(json_object *o, const char *key, int def)
 {
 	json_object *v;
-	if (json_object_object_get_ex(o, key, &v) && json_object_is_type(v, json_type_boolean))
+	if (json_object_object_get_ex(o, key, &v) && json_object_is_type(v, json_type_boolean)) {
 		return json_object_get_boolean(v);
+}
 	return def;
 }
 
 static int get_int(json_object *o, const char *key, int def)
 {
 	json_object *v;
-	if (json_object_object_get_ex(o, key, &v) && json_object_is_type(v, json_type_int))
+	if (json_object_object_get_ex(o, key, &v) && json_object_is_type(v, json_type_int)) {
 		return json_object_get_int(v);
+}
 	return def;
 }
 
@@ -54,7 +57,8 @@ json_object *tool_result(const char *text, int is_error)
 static json_object *schema_obj(const char *json)
 {
 	json_object *o = json_tokener_parse(json);
-	if (!o) o = json_object_new_object();
+	if (!o) { o = json_object_new_object();
+}
 	return o;
 }
 
@@ -71,9 +75,11 @@ void send_response(json_object *id, json_object *result, json_object *error)
 {
 	json_object *resp = json_object_new_object();
 	json_object_object_add(resp, "jsonrpc", json_object_new_string("2.0"));
-	if (id) json_object_object_add(resp, "id", json_object_get(id));
-	if (error) json_object_object_add(resp, "error", error);
-	else json_object_object_add(resp, "result", result);
+	if (id) { json_object_object_add(resp, "id", json_object_get(id));
+}
+	if (error) { json_object_object_add(resp, "error", error);
+	} else { json_object_object_add(resp, "result", result);
+}
 	fputs(json_object_to_json_string(resp), stdout);
 	fputc('\n', stdout);
 	fflush(stdout);
@@ -121,7 +127,8 @@ void handle_tools_call(json_object *id, json_object *params)
 	const char *name = get_str(params, "name");
 	json_object *args = NULL;
 	json_object_object_get_ex(params, "arguments", &args);
-	if (!args) args = json_object_new_object();
+	if (!args) { args = json_object_new_object();
+}
 
 	if (name && strcmp(name, "pycool") == 0) {
 		const char *op = get_str(args, "op");
@@ -134,7 +141,8 @@ void handle_tools_call(json_object *id, json_object *params)
 			send_response(id, NULL, err);
 			return;
 		}
-		if (!inner) inner = json_object_new_object();
+		if (!inner) { inner = json_object_new_object();
+}
 		name = op;
 		args = inner;
 	}
@@ -203,7 +211,8 @@ void handle_tools_call(json_object *id, json_object *params)
 		}
 		const char *info = get_str(args, "info");
 		if (info) { argv[argc++] = "--info"; argv[argc++] = (char *)info; }
-		if (get_bool(args, "body", 0)) argv[argc++] = "--body";
+		if (get_bool(args, "body", 0)) { argv[argc++] = "--body";
+}
 		const char *lines = get_str(args, "lines");
 		if (lines) { argv[argc++] = "--lines"; argv[argc++] = (char *)lines; }
 		int max_lines = get_int(args, "max_lines", 0);
@@ -211,10 +220,14 @@ void handle_tools_call(json_object *id, json_object *params)
 			static char mlbuf[32]; snprintf(mlbuf, sizeof(mlbuf), "%d", max_lines);
 			argv[argc++] = "--max-lines"; argv[argc++] = mlbuf;
 		}
-		if (get_bool(args, "refs", 0)) argv[argc++] = "--refs";
-		if (get_bool(args, "json", 0)) argv[argc++] = "--json";
-		if (get_bool(args, "compact", 0)) argv[argc++] = "--compact";
-		if (get_bool(args, "full", 0)) argv[argc++] = "--full";
+		if (get_bool(args, "refs", 0)) { argv[argc++] = "--refs";
+}
+		if (get_bool(args, "json", 0)) { argv[argc++] = "--json";
+}
+		if (get_bool(args, "compact", 0)) { argv[argc++] = "--compact";
+}
+		if (get_bool(args, "full", 0)) { argv[argc++] = "--full";
+}
 		int limit = get_int(args, "limit", 0);
 		if (limit > 0) {
 			static char lbuf[32]; snprintf(lbuf, sizeof(lbuf), "%d", limit);
@@ -237,7 +250,8 @@ void handle_tools_call(json_object *id, json_object *params)
 		argv[argc++] = "method";
 		argv[argc++] = (char *)cls;
 		const char *method = get_str(args, "method");
-		if (method) argv[argc++] = (char *)method;
+		if (method) { argv[argc++] = (char *)method;
+}
 		const char *file = get_str(args, "file");
 		if (file) { argv[argc++] = "--file"; argv[argc++] = (char *)file; }
 		const char *db = get_str(args, "db");
@@ -248,7 +262,8 @@ void handle_tools_call(json_object *id, json_object *params)
 			snprintf(pidbuf, sizeof(pidbuf), "%d", pid);
 			argv[argc++] = "--pid"; argv[argc++] = pidbuf;
 		}
-		if (get_bool(args, "body", 0)) argv[argc++] = "--body";
+		if (get_bool(args, "body", 0)) { argv[argc++] = "--body";
+}
 		const char *mlines = get_str(args, "lines");
 		if (mlines) { argv[argc++] = "--lines"; argv[argc++] = (char *)mlines; }
 		int mmax = get_int(args, "max_lines", 0);
@@ -256,7 +271,8 @@ void handle_tools_call(json_object *id, json_object *params)
 			static char mmbuf[32]; snprintf(mmbuf, sizeof(mmbuf), "%d", mmax);
 			argv[argc++] = "--max-lines"; argv[argc++] = mmbuf;
 		}
-		if (get_bool(args, "json", 0)) argv[argc++] = "--json";
+		if (get_bool(args, "json", 0)) { argv[argc++] = "--json";
+}
 		int limit = get_int(args, "limit", 0);
 		if (limit > 0) {
 			static char lbuf[32]; snprintf(lbuf, sizeof(lbuf), "%d", limit);
@@ -278,7 +294,8 @@ void handle_tools_call(json_object *id, json_object *params)
 		}
 		argv[argc++] = "search";
 		argv[argc++] = (char *)q;
-		if (get_bool(args, "regex", 0)) argv[argc++] = "--regex";
+		if (get_bool(args, "regex", 0)) { argv[argc++] = "--regex";
+}
 		const char *kind = get_str(args, "kind");
 		if (kind) { argv[argc++] = "--kind"; argv[argc++] = (char *)kind; }
 		const char *file = get_str(args, "file");
@@ -303,15 +320,18 @@ void handle_tools_call(json_object *id, json_object *params)
 		}
 	} else if (strcmp(name, "list_instances") == 0) {
 		argv[argc++] = "list";
-		if (get_bool(args, "dbsize", 0)) argv[argc++] = "--dbsize";
+		if (get_bool(args, "dbsize", 0)) { argv[argc++] = "--dbsize";
+}
 	} else if (strcmp(name, "info") == 0) {
 		const char *target = get_str(args, "target");
-		if (!target) target = "all";
+		if (!target) { target = "all";
+}
 		argv[argc++] = "info";
 		argv[argc++] = (char *)target;
 	} else if (strcmp(name, "reindex") == 0) {
 		const char *target = get_str(args, "target");
-		if (!target) target = "all";
+		if (!target) { target = "all";
+}
 		argv[argc++] = "reindex";
 		argv[argc++] = (char *)target;
 	} else {
@@ -327,12 +347,13 @@ void handle_tools_call(json_object *id, json_object *params)
 	size_t bufsize = 0;
 	FILE *mem = open_memstream(&buf, &bufsize);
 	int rc = 0;
-	if (strcmp(name, "query_class") == 0) rc = class_command(argc, argv, mem);
-	else if (strcmp(name, "query_method") == 0) rc = method_command(argc, argv, mem);
-	else if (strcmp(name, "search_symbols") == 0) rc = search_command(argc, argv, mem);
-	else if (strcmp(name, "list_instances") == 0) rc = list_command(argc, argv, mem);
-	else if (strcmp(name, "info") == 0) rc = info_command(argc, argv, mem);
-	else if (strcmp(name, "reindex") == 0) rc = reindex_command(argc, argv);
+	if (strcmp(name, "query_class") == 0) { rc = class_command(argc, argv, mem);
+	} else if (strcmp(name, "query_method") == 0) { rc = method_command(argc, argv, mem);
+	} else if (strcmp(name, "search_symbols") == 0) { rc = search_command(argc, argv, mem);
+	} else if (strcmp(name, "list_instances") == 0) { rc = list_command(argc, argv, mem);
+	} else if (strcmp(name, "info") == 0) { rc = info_command(argc, argv, mem);
+	} else if (strcmp(name, "reindex") == 0) { rc = reindex_command(argc, argv);
+}
 	fclose(mem);
 
 	if (strcmp(name, "reindex") == 0 && rc == 0 && (!buf || !buf[0])) {
@@ -340,15 +361,18 @@ void handle_tools_call(json_object *id, json_object *params)
 		buf = strdup("reindex triggered");
 	}
 	int is_error = (rc != 0);
-	if (buf && (strstr(buf, "cannot open") || strstr(buf, "no running instance") || strstr(buf, "not found") || strstr(buf, "schema mismatch")))
+	if (buf && (strstr(buf, "cannot open") || strstr(buf, "no running instance") || strstr(buf, "not found") || strstr(buf, "schema mismatch"))) {
 		is_error = 1;
+}
 	/* hard cap ~3KB with pagination hint */
 	if (buf) {
 		size_t blen = strlen(buf);
 		if (blen > 3000) {
 			size_t cap = 3000;
-			while (cap > 0 && buf[cap] != '\n') cap--;
-			if (cap == 0) cap = 3000;
+			while (cap > 0 && buf[cap] != '\n') { cap--;
+}
+			if (cap == 0) { cap = 3000;
+}
 			buf[cap] = '\0';
 			char tail[128];
 			snprintf(tail, sizeof(tail), "\n… (+%zu more bytes; use limit/offset)\n", blen - cap);

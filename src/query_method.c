@@ -19,8 +19,9 @@ static void print_json_str(FILE *out, const char *s)
 				case '\r': fputs("\\r", out); break;
 				case '\t': fputs("\\t", out); break;
 				default:
-					if (*p < 0x20) fprintf(out, "\\u%04x", *p);
-					else fputc(*p, out);
+					if (*p < 0x20) { fprintf(out, "\\u%04x", *p);
+					} else { fputc(*p, out);
+}
 			}
 		}
 	}
@@ -30,10 +31,12 @@ static void print_json_str(FILE *out, const char *s)
 static char *build_params(sqlite3 *db, sqlite3_int64 method_id)
 {
 	char *buf = NULL;
-	size_t cap = 0, len = 0;
+	size_t cap = 0;
+	size_t len = 0;
 	sqlite3_stmt *stmt;
 	const char *sql = "SELECT name, annotation, default_value, kind FROM method_args WHERE method_id=? ORDER BY position;";
-	if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) return strdup("");
+	if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) { return strdup("");
+}
 	sqlite3_bind_int64(stmt, 1, method_id);
 	int first = 1;
 	while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -43,9 +46,10 @@ static char *build_params(sqlite3 *db, sqlite3_int64 method_id)
 		const char *kind = (const char *)sqlite3_column_text(stmt, 3);
 		char piece[512];
 		piece[0] = '\0';
-		if (kind && strcmp(kind, "varargs") == 0) snprintf(piece, sizeof(piece), "*%s", name ? name : "");
-		else if (kind && strcmp(kind, "kwargs") == 0) snprintf(piece, sizeof(piece), "**%s", name ? name : "");
-		else snprintf(piece, sizeof(piece), "%s", name ? name : "");
+		if (kind && strcmp(kind, "varargs") == 0) { snprintf(piece, sizeof(piece), "*%s", name ? name : "");
+		} else if (kind && strcmp(kind, "kwargs") == 0) { snprintf(piece, sizeof(piece), "**%s", name ? name : "");
+		} else { snprintf(piece, sizeof(piece), "%s", name ? name : "");
+}
 		if (ann && ann[0]) {
 			char tmp[600];
 			snprintf(tmp, sizeof(tmp), "%s: %s", piece, ann);
@@ -59,9 +63,11 @@ static char *build_params(sqlite3 *db, sqlite3_int64 method_id)
 		size_t plen = strlen(piece);
 		if (len + plen + 4 >= cap) {
 			cap = cap ? cap * 2 : 256;
-			while (len + plen + 4 >= cap) cap *= 2;
+			while (len + plen + 4 >= cap) { cap *= 2;
+}
 			char *tmpbuf = realloc(buf, cap);
-			if (tmpbuf) buf = tmpbuf;
+			if (tmpbuf) { buf = tmpbuf;
+}
 		}
 		if (!first) { buf[len++] = ','; buf[len++] = ' '; }
 		first = 0;
@@ -70,14 +76,17 @@ static char *build_params(sqlite3 *db, sqlite3_int64 method_id)
 		buf[len] = '\0';
 	}
 	sqlite3_finalize(stmt);
-	if (!buf) buf = strdup("");
+	if (!buf) { buf = strdup("");
+}
 	return buf;
 }
 
 static void print_class_body(FILE *out, const char *path, long start, long end)
 {
-	if (!path || start <= 0) return;
-	if (end < start) end = start;
+	if (!path || start <= 0) { return;
+}
+	if (end < start) { end = start;
+}
 	FILE *f = fopen(path, "r");
 	if (!f) { perror(path); return; }
 	char *line = NULL;
@@ -86,8 +95,10 @@ static void print_class_body(FILE *out, const char *path, long start, long end)
 	long cur = 0;
 	while ((len = getline(&line, &cap, f)) != -1) {
 		cur++;
-		if (cur >= start && cur <= end) fputs(line, out);
-		if (cur >= end) break;
+		if (cur >= start && cur <= end) { fputs(line, out);
+}
+		if (cur >= end) { break;
+}
 	}
 	free(line);
 	fclose(f);
@@ -107,17 +118,18 @@ int method_command(int argc, char **argv, FILE *out)
 	int max_lines = 0;
 	int offset = 0;
 	for (int i = 2; i < argc; i++) {
-		if (strcmp(argv[i], "--db") == 0 && i + 1 < argc) dbpath = argv[++i];
-		else if (strcmp(argv[i], "--pid") == 0 && i + 1 < argc) pidstr = argv[++i];
-		else if (strcmp(argv[i], "--file") == 0 && i + 1 < argc) file = argv[++i];
-		else if (strcmp(argv[i], "--json") == 0) json_mode = 1;
-		else if (strcmp(argv[i], "--body") == 0) body_mode = 1;
-		else if (strcmp(argv[i], "--lines") == 0 && i + 1 < argc) lines = argv[++i];
-		else if (strcmp(argv[i], "--max-lines") == 0 && i + 1 < argc) max_lines = atoi(argv[++i]);
-		else if (strcmp(argv[i], "--limit") == 0 && i + 1 < argc) limit = atoi(argv[++i]);
-		else if (strcmp(argv[i], "--offset") == 0 && i + 1 < argc) offset = atoi(argv[++i]);
-		else if (!class_name) class_name = argv[i];
-		else if (!method_name) method_name = argv[i];
+		if (strcmp(argv[i], "--db") == 0 && i + 1 < argc) { dbpath = argv[++i];
+		} else if (strcmp(argv[i], "--pid") == 0 && i + 1 < argc) { pidstr = argv[++i];
+		} else if (strcmp(argv[i], "--file") == 0 && i + 1 < argc) { file = argv[++i];
+		} else if (strcmp(argv[i], "--json") == 0) { json_mode = 1;
+		} else if (strcmp(argv[i], "--body") == 0) { body_mode = 1;
+		} else if (strcmp(argv[i], "--lines") == 0 && i + 1 < argc) { lines = argv[++i];
+		} else if (strcmp(argv[i], "--max-lines") == 0 && i + 1 < argc) { max_lines = atoi(argv[++i]);
+		} else if (strcmp(argv[i], "--limit") == 0 && i + 1 < argc) { limit = atoi(argv[++i]);
+		} else if (strcmp(argv[i], "--offset") == 0 && i + 1 < argc) { offset = atoi(argv[++i]);
+		} else if (!class_name) { class_name = argv[i];
+		} else if (!method_name) { method_name = argv[i];
+}
 	}
 	if (!class_name) {
 		fprintf(stderr, "usage: pycoolctl method <Class> [Method] [--file PATH] [--body] [--json] [--limit N] [--offset N] [--pid PID] [--db PATH]\n");
@@ -126,18 +138,20 @@ int method_command(int argc, char **argv, FILE *out)
 	char *resolved_db = NULL;
 	if (!dbpath) {
 		if (pidstr) {
-			char **roots, **dbpaths; pid_t *pids; int n;
+			char **roots;
+			char **dbpaths; pid_t *pids; int n;
 			if (registry_list_paths(&roots, &dbpaths, &pids, &n) != 0 || n == 0) {
 				fprintf(stderr, "no running instance; pass --db PATH\n");
 				return 1;
 			}
 			pid_t target = (pid_t)atoi(pidstr);
-			for (int i = 0; i < n; i++) if (pids[i] == target) { dbpath = dbpaths[i]; break; }
+			for (int i = 0; i < n; i++) { if (pids[i] == target) { dbpath = dbpaths[i]; break; }
+}
 			if (!dbpath) { fprintf(stderr, "pid %s not found\n", pidstr); return 1; }
 		} else {
 			resolved_db = registry_default_db();
-			if (resolved_db) dbpath = resolved_db;
-			else { fprintf(stderr, "no running instance and no default db; pass --db PATH or set PYCOOL_DB\n"); return 1; }
+			if (resolved_db) { dbpath = resolved_db;
+			} else { fprintf(stderr, "no running instance and no default db; pass --db PATH or set PYCOOL_DB\n"); return 1; }
 		}
 	}
 	sqlite3 *db;
@@ -212,10 +226,13 @@ int method_command(int argc, char **argv, FILE *out)
 	}
 	int bi = 1;
 	sqlite3_bind_text(stmt, bi++, class_name, -1, SQLITE_TRANSIENT);
-	if (method_name) sqlite3_bind_text(stmt, bi++, method_name, -1, SQLITE_TRANSIENT);
-	if (file) sqlite3_bind_text(stmt, bi++, file, -1, SQLITE_TRANSIENT);
+	if (method_name) { sqlite3_bind_text(stmt, bi++, method_name, -1, SQLITE_TRANSIENT);
+}
+	if (file) { sqlite3_bind_text(stmt, bi++, file, -1, SQLITE_TRANSIENT);
+}
 
-	if (json_mode) fprintf(out, "[\n");
+	if (json_mode) { fprintf(out, "[\n");
+}
 	int first = 1;
 	int had = 0;
 	while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -230,23 +247,29 @@ int method_command(int argc, char **argv, FILE *out)
 		const char *mdoc = (const char *)sqlite3_column_text(stmt, 7);
 		char *params = build_params(db, mid);
 		if (body_mode) {
-			if (mend <= 0) mend = mline;
-			long rstart = mline, rend = mend;
+			if (mend <= 0) { mend = mline;
+}
+			long rstart = mline;
+			long rend = mend;
 			if (lines) {
 				char buf[64]; strncpy(buf, lines, sizeof(buf)-1); buf[sizeof(buf)-1]='\0';
 				char *comma = strchr(buf, ',');
 				if (comma) { *comma='\0'; rstart = atoi(buf); rend = atoi(comma+1); }
 				else { rstart = atoi(buf); rend = rstart; }
 			}
-			if (rstart < mline) rstart = mline;
-			if (rend > mend) rend = mend;
-			if (max_lines > 0 && rend - rstart + 1 > max_lines) rend = rstart + max_lines - 1;
+			if (rstart < mline) { rstart = mline;
+}
+			if (rend > mend) { rend = mend;
+}
+			if (max_lines > 0 && rend - rstart + 1 > max_lines) { rend = rstart + max_lines - 1;
+}
 			print_class_body(out, mpath, rstart, rend);
 			free(params);
 			continue;
 		}
 		if (json_mode) {
-			if (!first) fprintf(out, ",\n");
+			if (!first) { fprintf(out, ",\n");
+}
 			first = 0;
 			fprintf(out, "  {\"class\":");
 			print_json_str(out, class_name);
@@ -264,15 +287,18 @@ int method_command(int argc, char **argv, FILE *out)
 			fprintf(out, ",\"params\":\"%s\"}", params ? params : "");
 		} else {
 			fprintf(out, "%s.%s(%s)", class_name, mname ? mname : "", params ? params : "");
-			if (mret && mret[0]) fprintf(out, " -> %s", mret);
-			if (mdecs && mdecs[0]) fprintf(out, " %s", mdecs);
+			if (mret && mret[0]) { fprintf(out, " -> %s", mret);
+}
+			if (mdecs && mdecs[0]) { fprintf(out, " %s", mdecs);
+}
 			fprintf(out, " %s:%ld-%ld\n", mpath ? mpath : "", mline, mend);
 		}
 		free(params);
 	}
 	if (json_mode) {
-		if (had) fprintf(out, "\n]\n");
-		else fprintf(out, "[]\n");
+		if (had) { fprintf(out, "\n]\n");
+		} else { fprintf(out, "[]\n");
+}
 	}
 	sqlite3_finalize(stmt);
 	sqlite3_close(db);

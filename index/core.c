@@ -74,7 +74,8 @@ static const char *SCHEMA =
 // cppcheck-suppress staticFunction
 int index_open(const char *path, sqlite3 **db)
 {
-	if (sqlite3_open(path, db) != SQLITE_OK) return -1;
+	if (sqlite3_open(path, db) != SQLITE_OK) { return -1;
+}
 	sqlite3_busy_timeout(*db, 5000);
 	char *err = NULL;
 	if (sqlite3_exec(*db, SCHEMA, NULL, NULL, &err) != SQLITE_OK) {
@@ -91,14 +92,16 @@ int index_open(const char *path, sqlite3 **db)
 	char *verr = NULL;
 	if (sqlite3_exec(*db, vsql, NULL, NULL, &verr) != SQLITE_OK) {
 		fprintf(stderr, "meta insert error: %s\\n", verr ? verr : "(null)");
-		if (verr) sqlite3_free(verr);
+		if (verr) { sqlite3_free(verr);
+}
 	}
 	return 0;
 }
 
 void index_close(sqlite3 *db)
 {
-	if (db) sqlite3_close(db);
+	if (db) { sqlite3_close(db);
+}
 }
 
 int index_upsert_file(sqlite3 *db, const char *path, long mtime, const char *hash, sqlite3_int64 *file_id)
@@ -107,13 +110,15 @@ int index_upsert_file(sqlite3 *db, const char *path, long mtime, const char *has
 	                  "ON CONFLICT(path) DO UPDATE SET mtime=excluded.mtime, hash=excluded.hash "
 	                  "RETURNING id;";
 	sqlite3_stmt *stmt;
-	if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) return -1;
+	if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) { return -1;
+}
 	sqlite3_bind_text(stmt, 1, path, -1, SQLITE_TRANSIENT);
 	sqlite3_bind_int64(stmt, 2, mtime);
 	sqlite3_bind_text(stmt, 3, hash ? hash : "", -1, SQLITE_TRANSIENT);
 	int rc = sqlite3_step(stmt);
 	if (rc == SQLITE_ROW) {
-		if (file_id) *file_id = sqlite3_column_int64(stmt, 0);
+		if (file_id) { *file_id = sqlite3_column_int64(stmt, 0);
+}
 	}
 	sqlite3_finalize(stmt);
 	return (rc == SQLITE_ROW) ? 0 : -1;
@@ -123,16 +128,19 @@ int index_add_symbol(sqlite3 *db, sqlite3_int64 file_id, const char *name, const
 {
 	const char *sql = "INSERT INTO symbols(file_id,name,kind,line,col,detail) VALUES(?,?,?,?,?,?) RETURNING id;";
 	sqlite3_stmt *stmt;
-	if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) return -1;
+	if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) { return -1;
+}
 	sqlite3_bind_int64(stmt, 1, file_id);
 	sqlite3_bind_text(stmt, 2, name, -1, SQLITE_TRANSIENT);
 	sqlite3_bind_text(stmt, 3, kind, -1, SQLITE_TRANSIENT);
 	sqlite3_bind_int(stmt, 4, line);
 	sqlite3_bind_int(stmt, 5, col);
-	if (detail) sqlite3_bind_text(stmt, 6, detail, -1, SQLITE_TRANSIENT);
-	else sqlite3_bind_null(stmt, 6);
+	if (detail) { sqlite3_bind_text(stmt, 6, detail, -1, SQLITE_TRANSIENT);
+	} else { sqlite3_bind_null(stmt, 6);
+}
 	int rc = sqlite3_step(stmt);
-	if (rc == SQLITE_ROW && symbol_id) *symbol_id = sqlite3_column_int64(stmt, 0);
+	if (rc == SQLITE_ROW && symbol_id) { *symbol_id = sqlite3_column_int64(stmt, 0);
+}
 	sqlite3_finalize(stmt);
 	return (rc == SQLITE_ROW) ? 0 : -1;
 }
@@ -141,7 +149,8 @@ int index_add_ref(sqlite3 *db, sqlite3_int64 symbol_id, sqlite3_int64 file_id, i
 {
 	const char *sql = "INSERT INTO refs(symbol_id,file_id,line,col) VALUES(?,?,?,?);";
 	sqlite3_stmt *stmt;
-	if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) return -1;
+	if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) { return -1;
+}
 	sqlite3_bind_int64(stmt, 1, symbol_id);
 	sqlite3_bind_int64(stmt, 2, file_id);
 	sqlite3_bind_int(stmt, 3, line);
@@ -156,7 +165,8 @@ int index_add_type(sqlite3 *db, sqlite3_int64 symbol_id, const char *type_name)
 {
 	const char *sql = "INSERT INTO types(symbol_id,type_name) VALUES(?,?);";
 	sqlite3_stmt *stmt;
-	if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) return -1;
+	if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) { return -1;
+}
 	sqlite3_bind_int64(stmt, 1, symbol_id);
 	sqlite3_bind_text(stmt, 2, type_name, -1, SQLITE_TRANSIENT);
 	int rc = sqlite3_step(stmt);
@@ -171,14 +181,16 @@ int index_init(const char *path, sqlite3 **db)
 
 int index_remove_file(sqlite3 *db, const char *path)
 {
-	if (index_begin(db) != 0) return -1;
+	if (index_begin(db) != 0) { return -1;
+}
 	sqlite3_int64 file_id = 0;
 	{
 		const char *sql = "SELECT id FROM files WHERE path=?;";
 		sqlite3_stmt *stmt;
 		if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) { index_rollback(db); return -1; }
 		sqlite3_bind_text(stmt, 1, path, -1, SQLITE_TRANSIENT);
-		if (sqlite3_step(stmt) == SQLITE_ROW) file_id = sqlite3_column_int64(stmt, 0);
+		if (sqlite3_step(stmt) == SQLITE_ROW) { file_id = sqlite3_column_int64(stmt, 0);
+}
 		sqlite3_finalize(stmt);
 	}
 	if (file_id == 0) { index_commit(db); return 0; } /* not present */
@@ -245,10 +257,12 @@ int index_remove_dir(sqlite3 *db, const char *dir)
 {
 	size_t plen = strlen(dir) + 1;
 	char prefix[4096];
-	if (plen + 1 > sizeof(prefix)) return -1;
+	if (plen + 1 > sizeof(prefix)) { return -1;
+}
 	snprintf(prefix, sizeof(prefix), "%s/", dir);
 
-	if (index_begin(db) != 0) return -1;
+	if (index_begin(db) != 0) { return -1;
+}
 
 	/* types for symbols of affected files */
 	const char *q1 = "DELETE FROM types WHERE symbol_id IN ("
@@ -335,7 +349,8 @@ int index_file_changed(sqlite3 *db, const char *path, long mtime, const char *ha
 {
 	const char *sql = "SELECT mtime, hash FROM files WHERE path=?;";
 	sqlite3_stmt *stmt;
-	if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) return -1;
+	if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) { return -1;
+}
 	sqlite3_bind_text(stmt, 1, path, -1, SQLITE_TRANSIENT);
 	int rc = sqlite3_step(stmt);
 	if (rc == SQLITE_ROW) {
@@ -357,13 +372,16 @@ int index_file_changed(sqlite3 *db, const char *path, long mtime, const char *ha
 
 int index_schema_version(sqlite3 *db)
 {
-	if (!db) return -1;
+	if (!db) { return -1;
+}
 	sqlite3_stmt *stmt;
-	if (sqlite3_prepare_v2(db, "SELECT value FROM meta WHERE key='schema_version';", -1, &stmt, NULL) != SQLITE_OK) return -1;
+	if (sqlite3_prepare_v2(db, "SELECT value FROM meta WHERE key='schema_version';", -1, &stmt, NULL) != SQLITE_OK) { return -1;
+}
 	int v = -1;
 	if (sqlite3_step(stmt) == SQLITE_ROW) {
 		const unsigned char *t = sqlite3_column_text(stmt, 0);
-		if (t) v = atoi((const char *)t);
+		if (t) { v = atoi((const char *)t);
+}
 	}
 	sqlite3_finalize(stmt);
 	return v;
@@ -371,9 +389,11 @@ int index_schema_version(sqlite3 *db)
 
 int index_has_methods_table(sqlite3 *db)
 {
-	if (!db) return 0;
+	if (!db) { return 0;
+}
 	sqlite3_stmt *stmt;
-	if (sqlite3_prepare_v2(db, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='methods';", -1, &stmt, NULL) != SQLITE_OK) return 0;
+	if (sqlite3_prepare_v2(db, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='methods';", -1, &stmt, NULL) != SQLITE_OK) { return 0;
+}
 	int ok = (sqlite3_step(stmt) == SQLITE_ROW);
 	sqlite3_finalize(stmt);
 	return ok;

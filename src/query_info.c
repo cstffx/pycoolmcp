@@ -14,12 +14,16 @@ int info_command(int argc, char **argv, FILE *out)
 		return 2;
 	}
 	char **targets = NULL;
-	int ntarget = 0, cap = 0;
+	int ntarget = 0;
+	int cap = 0;
 	if (strcmp(argv[2], "all") == 0) {
-		char **roots, **dbpaths; pid_t *pids; int n;
-		if (registry_list_paths(&roots, &dbpaths, &pids, &n) != 0) return 1;
+		char **roots;
+		char **dbpaths; pid_t *pids; int n;
+		if (registry_list_paths(&roots, &dbpaths, &pids, &n) != 0) { return 1;
+}
 		for (int i = 0; i < n; i++) {
-			if (ntarget == cap) { cap = cap ? cap * 2 : 8; char **tmp = realloc(targets, cap * sizeof(char *)); if (tmp) targets = tmp; }
+			if (ntarget == cap) { cap = cap ? cap * 2 : 8; char **tmp = realloc(targets, cap * sizeof(char *)); if (tmp) { targets = tmp; 
+}}
 			targets[ntarget++] = dbpaths[i];
 		}
 	} else {
@@ -27,40 +31,49 @@ int info_command(int argc, char **argv, FILE *out)
 		long pid = strtol(argv[2], &end, 10);
 		const char *dbpath = NULL;
 		if (*end == '\0') {
-			char **roots, **dbpaths; pid_t *pids; int n;
+			char **roots;
+			char **dbpaths; pid_t *pids; int n;
 			if (registry_list_paths(&roots, &dbpaths, &pids, &n) == 0) {
 				for (int i = 0; i < n; i++) {
 					if (pids[i] == (pid_t)pid) { dbpath = dbpaths[i]; break; }
 				}
 			}
 		}
-		if (!dbpath) dbpath = argv[2];
-		if (ntarget == cap) { cap = cap ? cap * 2 : 8; char **tmp = realloc(targets, cap * sizeof(char *)); if (tmp) targets = tmp; }
+		if (!dbpath) { dbpath = argv[2];
+}
+		if (ntarget == cap) { cap = cap ? cap * 2 : 8; char **tmp = realloc(targets, cap * sizeof(char *)); if (tmp) { targets = tmp; 
+}}
 		targets[ntarget++] = strdup(dbpath);
 	}
 	for (int t = 0; t < ntarget; t++) {
 		const char *dbpath = targets[t];
 		struct stat st;
 		long size = -1;
-		if (stat(dbpath, &st) == 0) size = (long)st.st_size;
+		if (stat(dbpath, &st) == 0) { size = (long)st.st_size;
+}
 		sqlite3 *db;
 		if (sqlite3_open(dbpath, &db) != SQLITE_OK) {
 			fprintf(stderr, "cannot open %s\n", dbpath);
 			continue;
 		}
-		long files = 0, classes = 0, functions = 0, variables = 0;
+		long files = 0;
+		long classes = 0;
+		long functions = 0;
+		long variables = 0;
 		sqlite3_stmt *stmt;
 		if (sqlite3_prepare_v2(db, "SELECT COUNT(*) FROM files;", -1, &stmt, NULL) == SQLITE_OK) {
-			if (sqlite3_step(stmt) == SQLITE_ROW) files = sqlite3_column_int64(stmt, 0);
+			if (sqlite3_step(stmt) == SQLITE_ROW) { files = sqlite3_column_int64(stmt, 0);
+}
 			sqlite3_finalize(stmt);
 		}
 		if (sqlite3_prepare_v2(db, "SELECT kind, COUNT(*) FROM symbols GROUP BY kind;", -1, &stmt, NULL) == SQLITE_OK) {
 			while (sqlite3_step(stmt) == SQLITE_ROW) {
 				const unsigned char *k = sqlite3_column_text(stmt, 0);
 				long c = sqlite3_column_int64(stmt, 1);
-				if (k && strcmp((const char *)k, "class") == 0) classes = c;
-				else if (k && strcmp((const char *)k, "function") == 0) functions = c;
-				else if (k && strcmp((const char *)k, "variable") == 0) variables = c;
+				if (k && strcmp((const char *)k, "class") == 0) { classes = c;
+				} else if (k && strcmp((const char *)k, "function") == 0) { functions = c;
+				} else if (k && strcmp((const char *)k, "variable") == 0) { variables = c;
+}
 			}
 			sqlite3_finalize(stmt);
 		}

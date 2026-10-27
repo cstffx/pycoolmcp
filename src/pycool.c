@@ -30,16 +30,19 @@ static void on_event(const char *path, uint32_t mask, void *userdata)
 {
 	sqlite3 *db = userdata;
 	if (pycool_root && ignore_is_ignored(pycool_ignore, pycool_root, path)) {
-		if (!(mask & (IN_DELETE | IN_MOVED_FROM))) index_remove_file(db, path);
+		if (!(mask & (IN_DELETE | IN_MOVED_FROM))) { index_remove_file(db, path);
+}
 		return;
 	}
 	struct stat st;
 	if (mask & (IN_DELETE | IN_MOVED_FROM)) {
-		if (mask & IN_ISDIR) index_remove_dir(db, path);
-		else index_remove_file(db, path);
+		if (mask & IN_ISDIR) { index_remove_dir(db, path);
+		} else { index_remove_file(db, path);
+}
 		return;
 	}
-	if (stat(path, &st) != 0) return;
+	if (stat(path, &st) != 0) { return;
+}
 	if (S_ISDIR(st.st_mode)) {
 		scan_dir(path, db);
 	} else if (S_ISREG(st.st_mode)) {
@@ -75,7 +78,8 @@ static void clean_index(sqlite3 *db)
 int pycool_run(const char *root, const char *dbpath)
 {
 	char *root_abs = realpath(root, NULL);
-	if (!root_abs) root_abs = strdup(root);
+	if (!root_abs) { root_abs = strdup(root);
+}
 	if (registry_overlap(root_abs)) {
 		fprintf(stderr, "error: %s is already monitored (or overlaps a monitored directory)\n", root_abs);
 		free(root_abs);

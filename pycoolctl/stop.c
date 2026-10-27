@@ -13,10 +13,12 @@ int stop_command(int argc, char **argv)
 		fprintf(stderr, "Usage: %s stop <pid|all>\n", argv[0]);
 		return 2;
 	}
-	char **roots, **dbpaths; pid_t *pids; int n;
+	char **roots;
+	char **dbpaths; pid_t *pids; int n;
 	registry_list_paths(&roots, &dbpaths, &pids, &n);
 	if (strcmp(argv[2], "all") == 0) {
-		for (int i = 0; i < n; i++) kill(pids[i], SIGTERM);
+		for (int i = 0; i < n; i++) { kill(pids[i], SIGTERM);
+}
 	} else {
 		kill(atoi(argv[2]), SIGTERM);
 	}

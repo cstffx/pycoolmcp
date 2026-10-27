@@ -19,11 +19,14 @@ static void resolve_binary(const char *argv0, const char *name, char *out, size_
 	strncpy(dir, argv0, sizeof(dir) - 1);
 	dir[sizeof(dir) - 1] = '\0';
 	char *slash = strrchr(dir, '/');
-	if (slash) *slash = '\0';
-	else strcpy(dir, ".");
+	if (slash) { *slash = '\0';
+	} else { strcpy(dir, ".");
+}
 
 	const char *candidates[4];
-	char c0[4096], c1[4096], c2[4096];
+	char c0[4096];
+	char c1[4096];
+	char c2[4096];
 	snprintf(c0, sizeof(c0), "%s/%s", dir, name);
 	snprintf(c1, sizeof(c1), "%s/bin/%s", dir, name);
 	snprintf(c2, sizeof(c2), "%s/../bin/%s", dir, name);
@@ -70,7 +73,8 @@ int index_start(const char *root, const char *db, char **msg)
 		char *a[4]; int ac = 0;
 		a[ac++] = "pycool";
 		a[ac++] = (char *)root;
-		if (db) a[ac++] = (char *)db;
+		if (db) { a[ac++] = (char *)db;
+}
 		a[ac] = NULL;
 		execv(pycool_path_buf, a);
 		_exit(127);

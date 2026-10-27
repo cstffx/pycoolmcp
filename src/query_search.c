@@ -11,15 +11,18 @@
 
 static int match_text(const char *hay, const char *needle, int regex_mode, regex_t *re)
 {
-	if (!hay) return 0;
+	if (!hay) { return 0;
+}
 	if (regex_mode) {
 		return regexec(re, hay, 0, NULL, 0) == 0;
 	}
 	char *h = strdup(hay);
 	char *n = strdup(needle);
 	if (!h || !n) { free(h); free(n); return 0; }
-	for (char *p = h; *p; p++) *p = (char)tolower((unsigned char)*p);
-	for (char *p = n; *p; p++) *p = (char)tolower((unsigned char)*p);
+	for (char *p = h; *p; p++) { *p = (char)tolower((unsigned char)*p);
+}
+	for (char *p = n; *p; p++) { *p = (char)tolower((unsigned char)*p);
+}
 	int r = strstr(h, n) != NULL;
 	free(h); free(n);
 	return r;
@@ -33,17 +36,19 @@ int search_command(int argc, char **argv, FILE *out)
 	const char *file = NULL;
 	const char *dbpath = NULL;
 	const char *pidstr = NULL;
-	int limit = 0, offset = 0;
+	int limit = 0;
+	int offset = 0;
 
 	for (int i = 2; i < argc; i++) {
-		if (strcmp(argv[i], "--regex") == 0) regex_mode = 1;
-		else if (strcmp(argv[i], "--kind") == 0 && i + 1 < argc) kind = argv[++i];
-		else if (strcmp(argv[i], "--file") == 0 && i + 1 < argc) file = argv[++i];
-		else if (strcmp(argv[i], "--db") == 0 && i + 1 < argc) dbpath = argv[++i];
-		else if (strcmp(argv[i], "--pid") == 0 && i + 1 < argc) pidstr = argv[++i];
-		else if (strcmp(argv[i], "--limit") == 0 && i + 1 < argc) limit = atoi(argv[++i]);
-		else if (strcmp(argv[i], "--offset") == 0 && i + 1 < argc) offset = atoi(argv[++i]);
-		else if (!query) query = argv[i];
+		if (strcmp(argv[i], "--regex") == 0) { regex_mode = 1;
+		} else if (strcmp(argv[i], "--kind") == 0 && i + 1 < argc) { kind = argv[++i];
+		} else if (strcmp(argv[i], "--file") == 0 && i + 1 < argc) { file = argv[++i];
+		} else if (strcmp(argv[i], "--db") == 0 && i + 1 < argc) { dbpath = argv[++i];
+		} else if (strcmp(argv[i], "--pid") == 0 && i + 1 < argc) { pidstr = argv[++i];
+		} else if (strcmp(argv[i], "--limit") == 0 && i + 1 < argc) { limit = atoi(argv[++i]);
+		} else if (strcmp(argv[i], "--offset") == 0 && i + 1 < argc) { offset = atoi(argv[++i]);
+		} else if (!query) { query = argv[i];
+}
 	}
 
 	if (!query) {
@@ -54,18 +59,20 @@ int search_command(int argc, char **argv, FILE *out)
 	char *resolved_db = NULL;
 	if (!dbpath) {
 		if (pidstr) {
-			char **roots, **dbpaths; pid_t *pids; int n;
+			char **roots;
+			char **dbpaths; pid_t *pids; int n;
 			if (registry_list_paths(&roots, &dbpaths, &pids, &n) != 0 || n == 0) {
 				fprintf(stderr, "no running instance; pass --db PATH\n");
 				return 1;
 			}
 			pid_t target = (pid_t)atoi(pidstr);
-			for (int i = 0; i < n; i++) if (pids[i] == target) { dbpath = dbpaths[i]; break; }
+			for (int i = 0; i < n; i++) { if (pids[i] == target) { dbpath = dbpaths[i]; break; }
+}
 			if (!dbpath) { fprintf(stderr, "pid %s not found\n", pidstr); return 1; }
 		} else {
 			resolved_db = registry_default_db();
-			if (resolved_db) dbpath = resolved_db;
-			else { fprintf(stderr, "no db; pass --db PATH or set PYCOOL_DB\n"); return 1; }
+			if (resolved_db) { dbpath = resolved_db;
+			} else { fprintf(stderr, "no db; pass --db PATH or set PYCOOL_DB\n"); return 1; }
 		}
 	}
 
@@ -99,7 +106,8 @@ int search_command(int argc, char **argv, FILE *out)
 
 	typedef struct { char *path; long line; char *kind; char *name; char *doc; } Row;
 	Row *rows = NULL;
-	int nrows = 0, caprows = 0;
+	int nrows = 0;
+	int caprows = 0;
 
 	int want_class = (strcmp(kind, "all") == 0 || strcmp(kind, "class") == 0);
 	int want_function = (strcmp(kind, "all") == 0 || strcmp(kind, "function") == 0);
@@ -116,17 +124,21 @@ int search_command(int argc, char **argv, FILE *out)
 		char kindclause[256] = "";
 		if (!(want_class && want_function && want_variable)) {
 			strcat(kindclause, " AND s.kind IN (");
-			if (want_class) { if (kindclause[strlen(kindclause)-1] != '(') strcat(kindclause, ","); strcat(kindclause, "'class'"); }
-			if (want_function) { if (kindclause[strlen(kindclause)-1] != '(') strcat(kindclause, ","); strcat(kindclause, "'function'"); }
-			if (want_variable) { if (kindclause[strlen(kindclause)-1] != '(') strcat(kindclause, ","); strcat(kindclause, "'variable'"); }
+			if (want_class) { if (kindclause[strlen(kindclause)-1] != '(') { strcat(kindclause, ","); 
+}strcat(kindclause, "'class'"); }
+			if (want_function) { if (kindclause[strlen(kindclause)-1] != '(') { strcat(kindclause, ","); 
+}strcat(kindclause, "'function'"); }
+			if (want_variable) { if (kindclause[strlen(kindclause)-1] != '(') { strcat(kindclause, ","); 
+}strcat(kindclause, "'variable'"); }
 			strcat(kindclause, ")");
 		}
 		strcat(sql, kindclause);
 		if (file) {
-			if (strchr(file, '*') || strchr(file, '?'))
+			if (strchr(file, '*') || strchr(file, '?')) {
 				snprintf(sql + strlen(sql), sizeof(sql) - strlen(sql), " AND f.path GLOB '%s'", file);
-			else
+			} else {
 				snprintf(sql + strlen(sql), sizeof(sql) - strlen(sql), " AND f.path = '%s'", file);
+}
 		}
 		sqlite3_stmt *stmt;
 		if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
@@ -136,8 +148,10 @@ int search_command(int argc, char **argv, FILE *out)
 				long ln = sqlite3_column_int64(stmt, 2);
 				const char *p = (const char *)sqlite3_column_text(stmt, 3);
 				const char *doc = (const char *)sqlite3_column_text(stmt, 4);
-				if (!match_text(nm, query, regex_mode, &re) && !match_text(doc, query, regex_mode, &re)) continue;
-				if (nrows == caprows) { caprows = caprows ? caprows*2 : 64; Row *tmp = realloc(rows, caprows*sizeof(Row)); if (tmp) rows = tmp; }
+				if (!match_text(nm, query, regex_mode, &re) && !match_text(doc, query, regex_mode, &re)) { continue;
+}
+				if (nrows == caprows) { caprows = caprows ? caprows*2 : 64; Row *tmp = realloc(rows, caprows*sizeof(Row)); if (tmp) { rows = tmp; 
+}}
 				rows[nrows].path = strdup(p ? p : "");
 				rows[nrows].line = ln;
 				rows[nrows].kind = strdup(k ? k : "");
@@ -156,10 +170,11 @@ int search_command(int argc, char **argv, FILE *out)
 			"FROM methods m JOIN symbols s ON m.class_symbol_id=s.id JOIN files f ON s.file_id=f.id "
 			"WHERE 1=1");
 		if (file) {
-			if (strchr(file, '*') || strchr(file, '?'))
+			if (strchr(file, '*') || strchr(file, '?')) {
 				snprintf(sql + strlen(sql), sizeof(sql) - strlen(sql), " AND f.path GLOB '%s'", file);
-			else
+			} else {
 				snprintf(sql + strlen(sql), sizeof(sql) - strlen(sql), " AND f.path = '%s'", file);
+}
 		}
 		sqlite3_stmt *stmt;
 		if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
@@ -168,8 +183,10 @@ int search_command(int argc, char **argv, FILE *out)
 				long ln = sqlite3_column_int64(stmt, 1);
 				const char *p = (const char *)sqlite3_column_text(stmt, 2);
 				const char *doc = (const char *)sqlite3_column_text(stmt, 3);
-				if (!match_text(nm, query, regex_mode, &re) && !match_text(doc, query, regex_mode, &re)) continue;
-				if (nrows == caprows) { caprows = caprows ? caprows*2 : 64; Row *tmp = realloc(rows, caprows*sizeof(Row)); if (tmp) rows = tmp; }
+				if (!match_text(nm, query, regex_mode, &re) && !match_text(doc, query, regex_mode, &re)) { continue;
+}
+				if (nrows == caprows) { caprows = caprows ? caprows*2 : 64; Row *tmp = realloc(rows, caprows*sizeof(Row)); if (tmp) { rows = tmp; 
+}}
 				rows[nrows].path = strdup(p ? p : "");
 				rows[nrows].line = ln;
 				rows[nrows].kind = strdup("method");
@@ -181,16 +198,20 @@ int search_command(int argc, char **argv, FILE *out)
 		}
 	}
 
-	if (re_ok) regfree(&re);
+	if (re_ok) { regfree(&re);
+}
 
 	int shown = 0;
 	for (int i = 0; i < nrows; i++) {
-		if (i < offset) continue;
-		if (limit > 0 && shown >= limit) break;
+		if (i < offset) { continue;
+}
+		if (limit > 0 && shown >= limit) { break;
+}
 		fprintf(out, "%s:%ld %s %s", rows[i].path, rows[i].line, rows[i].kind, rows[i].name);
 		if (rows[i].doc && rows[i].doc[0]) {
 			char *nl = strchr(rows[i].doc, '\n');
-			if (nl) *nl = '\0';
+			if (nl) { *nl = '\0';
+}
 			fprintf(out, "  # %s", rows[i].doc);
 		}
 		fputc('\n', out);

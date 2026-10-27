@@ -16,9 +16,11 @@
 
 #include "../http/http.h"
 
-#define MAX_OUTPUT    65536
-#define MAX_ARGV      128
-#define CHILD_TIMEOUT 10
+enum {
+MAX_OUTPUT =    65536,
+MAX_ARGV =      128,
+CHILD_TIMEOUT = 10
+};
 
 static char pycoolctl_path[4096];
 static int srv_fd = -1;
@@ -48,7 +50,8 @@ static void run_query(int client, const char *subcmd, const char *query)
 				continue;
 			}
 			if (strcmp(key, "name") == 0 || strcmp(key, "class") == 0) {
-				if (valid_simple(val)) argv[argc++] = val;
+				if (valid_simple(val)) { argv[argc++] = val;
+}
 			} else if (strcmp(key, "method") == 0) {
 				if (valid_simple(val)) {
 					argv[argc++] = "--method";
@@ -114,7 +117,8 @@ static void run_query(int client, const char *subcmd, const char *query)
 	}
 	if (pid == 0) {
 		close(pipefd[0]);
-		if (srv_fd >= 0) close(srv_fd);
+		if (srv_fd >= 0) { close(srv_fd);
+}
 		close(client);
 		dup2(pipefd[1], STDOUT_FILENO);
 		close(pipefd[1]);
@@ -156,12 +160,15 @@ static void run_query(int client, const char *subcmd, const char *query)
 			}
 		}
 		pid_t w = waitpid(pid, NULL, WNOHANG);
-		if (w == pid) child_done = 1;
-		if (w < 0) child_done = 1;
+		if (w == pid) { child_done = 1;
+}
+		if (w < 0) { child_done = 1;
+}
 	}
 	while (off < MAX_OUTPUT - 1) {
 		ssize_t r = read(pipefd[0], out + off, (MAX_OUTPUT - 1) - off);
-		if (r <= 0) break;
+		if (r <= 0) { break;
+}
 		off += r;
 	}
 	out[off] = '\0';
@@ -193,8 +200,10 @@ int main(int argc, char **argv)
 
 	int port = 8080;
 	const char *bind_addr = "127.0.0.1";
-	if (argc >= 2) port = atoi(argv[1]);
-	if (argc >= 3) bind_addr = argv[2];
+	if (argc >= 2) { port = atoi(argv[1]);
+}
+	if (argc >= 3) { bind_addr = argv[2];
+}
 	if (port <= 0 || port > 65535) {
 		fprintf(stderr, "invalid port: %d\n", port);
 		return 1;
@@ -222,7 +231,8 @@ int main(int argc, char **argv)
 	for (;;) {
 		int client = accept(srv_fd, NULL, NULL);
 		if (client < 0) {
-			if (errno == EINTR) continue;
+			if (errno == EINTR) { continue;
+}
 			continue;
 		}
 		struct timeval tv = { .tv_sec = 5, .tv_usec = 0 };
@@ -242,7 +252,8 @@ int main(int argc, char **argv)
 			continue;
 		}
 
-		char method[16], path[1024];
+		char method[16];
+		char path[1024];
 		method[0] = '\0'; path[0] = '\0';
 		if (sscanf(req, "%15s %1023s", method, path) != 2) {
 			send_response(client, 400, "Bad Request", "text/plain; charset=utf-8", "bad request\n", 12);
@@ -260,8 +271,10 @@ int main(int argc, char **argv)
 				"Connection: close\r\n"
 				"%s"
 				"\r\n", strlen(body), SECURITY_HEADERS);
-			if (hlen < 0) hlen = 0;
-			if (hlen >= (int)sizeof(h)) hlen = (int)sizeof(h) - 1;
+			if (hlen < 0) { hlen = 0;
+}
+			if (hlen >= (int)sizeof(h)) { hlen = (int)sizeof(h) - 1;
+}
 			send_all(client, h, (size_t)hlen);
 			send_all(client, body, strlen(body));
 			close(client);

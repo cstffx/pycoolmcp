@@ -1,21 +1,23 @@
 CC ?= gcc
 PYTHON_CFLAGS := $(shell python3.13-config --cflags 2>/dev/null || python3-config --cflags 2>/dev/null || echo "-I/usr/include/python3.13")
 PYTHON_LIBS := $(shell python3.13-config --ldflags --libs --embed 2>/dev/null || python3-config --ldflags --libs --embed 2>/dev/null || echo "-lpython3.13 -ldl -lm")
-CFLAGS ?= -std=c11 -O2 -Wall -Wextra $(PYTHON_CFLAGS) -Isrc -Iindex -Ipycoolctl
+CFLAGS ?= -std=c11 -O2 -Wall -Wextra $(PYTHON_CFLAGS) -Isrc -Iindex -Iextract -Ipycoolctl
 LDFLAGS ?= $(PYTHON_LIBS) -lsqlite3
 
 SRC := src
 INDEX := index
+EXTRACT := extract
 CLI := pycoolctl
 TESTS := tests
 BUILD := build
 
 # Library sources
-LIB_SRCS := $(SRC)/ast.c $(SRC)/traverse.c $(SRC)/extract.c $(SRC)/scan.c \
+LIB_SRCS := $(SRC)/ast.c $(SRC)/traverse.c $(SRC)/scan.c \
             $(SRC)/ignore.c $(SRC)/observer.c $(SRC)/registry.c $(SRC)/pycool.c \
             $(SRC)/dbpath.c \
             $(SRC)/query_class.c $(SRC)/query_method.c $(SRC)/query_list.c $(SRC)/query_info.c \
             $(SRC)/query_reindex.c $(SRC)/query_search.c \
+            $(EXTRACT)/extract.c $(EXTRACT)/common.c $(EXTRACT)/class.c $(EXTRACT)/method.c $(EXTRACT)/assign.c \
             $(INDEX)/core.c $(INDEX)/class.c $(INDEX)/method.c
 
 LIB_OBJS := $(LIB_SRCS:%.c=$(BUILD)/%.o)
@@ -137,11 +139,11 @@ pipeline: cppcheck build test clean
 	@echo "Pipeline OK - ready to push"
 
 cppcheck:
-	cppcheck --enable=all --inconclusive --inline-suppr --quiet --suppress=missingInclude --suppress=missingIncludeSystem --suppress=checkLevelNormal --suppress=checkersReport --suppress=normalCheckLevelMaxBranches --suppress=unmatchedSuppression src/ index/ mcp/ pycoolctl/ 2>&1 | tee cppcheck.txt
+	cppcheck --enable=all --inconclusive --inline-suppr --quiet --suppress=missingInclude --suppress=missingIncludeSystem --suppress=checkLevelNormal --suppress=checkersReport --suppress=normalCheckLevelMaxBranches --suppress=unmatchedSuppression src/ index/ extract/ mcp/ pycoolctl/ 2>&1 | tee cppcheck.txt
 	test ! -s cppcheck.txt
 
 lint:
-	clang-tidy -checks=-*,readability-*,modernize-*,-readability-identifier-length,-readability-magic-numbers,-readability-function-cognitive-complexity,-readability-function-size src/*.c index/*.c mcp/*.c pycoolctl/*.c -- $(CFLAGS) 2>&1 | tee lint.txt
+	clang-tidy -checks=-*,readability-*,modernize-*,-readability-identifier-length,-readability-magic-numbers,-readability-function-cognitive-complexity,-readability-function-size src/*.c index/*.c extract/*.c mcp/*.c pycoolctl/*.c -- $(CFLAGS) 2>&1 | tee lint.txt
 	test ! -s lint.txt || echo "Lint warnings found"
 
 build: all

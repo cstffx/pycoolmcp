@@ -9,7 +9,7 @@ C/Python indexer (pycool daemon + pycoolctl CLI + MCP server).
 Tool: **gcovr** (`.gcovr.cfg`). Build with `--coverage`, run tests, then `gcovr --root .`. `make clean` removes `*.gcda`, `*.gcno`, `*.gcov`.
 
 ## Notes
-- Source: `src/`, `index/`, `pycoolctl/`, `mcp/`.
+- Source: `src/`, `index/`, `extract/`, `pycoolctl/`, `mcp/`.
 - Functions with cognitive complexity > 25 are tracked in clang-tidy linting.
 
 ## Before commit

@@ -4,9 +4,9 @@
 #include <sqlite3.h>
 #include <Python.h>
 
-typedef struct { sqlite3 *db; sqlite3_int64 file_id; } Ctx;
-
-void extract_assign_targets(PyObject *target, Ctx *ctx, int line);
-void on_node(const char *type, int lineno, const char *name, void *node_ptr, void *ud);
+/* Re-export from extract/ module - Ctx defined there */
+#include "../extract/common.h"
+#include "../extract/extract.h"
+#include "../extract/assign.h"
 
 #endif /* PYCOOLS_EXTRACT_H */

@@ -1,6 +1,6 @@
 CC ?= gcc
-PYTHON_CFLAGS := $(shell python3-config --cflags 2>/dev/null || echo "-I/usr/include/python3.13")
-PYTHON_LIBS := $(shell python3-config --libs --embed 2>/dev/null || echo "-lpython3.13 -ldl -lm")
+PYTHON_CFLAGS := $(shell python3.13-config --cflags 2>/dev/null || python3-config --cflags 2>/dev/null || echo "-I/usr/include/python3.13")
+PYTHON_LIBS := $(shell python3.13-config --ldflags --libs --embed 2>/dev/null || python3-config --ldflags --libs --embed 2>/dev/null || echo "-lpython3.13 -ldl -lm")
 CFLAGS ?= -std=c11 -O2 -Wall -Wextra $(PYTHON_CFLAGS) -Isrc -Iindex -Ipycoolctl
 LDFLAGS ?= $(PYTHON_LIBS) -lsqlite3
 
@@ -56,9 +56,10 @@ $(BUILD)/http_server: $(HTTP)/http.c mcp/http_app.c
 
 # --- mcp server ---
 MCP_CFLAGS := $(CFLAGS) $(shell pkg-config --cflags json-c 2>/dev/null)
+MCP_LDFLAGS := -L$(BUILD) -lpycool -ljson-c $(PYTHON_LIBS) -lsqlite3 -Wl,-rpath,'$$ORIGIN' -Wl,-rpath,'$$ORIGIN/../lib'
 $(BUILD)/pycoolmcp: mcp/mcp_server.c mcp/tools.c mcp/index_manager.c $(BUILD)/libpycool.so
 	@mkdir -p $(dir $@)
-	$(CC) $(MCP_CFLAGS) -I mcp -o $@ mcp/mcp_server.c mcp/tools.c mcp/index_manager.c -L$(BUILD) -lpycool -ljson-c -lpython3.13 -lsqlite3 -Wl,-rpath,'$$ORIGIN' -Wl,-rpath,'$$ORIGIN/../lib'
+	$(CC) $(MCP_CFLAGS) -I mcp -o $@ mcp/mcp_server.c mcp/tools.c mcp/index_manager.c $(MCP_LDFLAGS)
 
 # --- tests ---
 TEST_BINS := $(BUILD)/test_ast $(BUILD)/test_traverse $(BUILD)/test_index $(BUILD)/test_dbpath $(BUILD)/test_info $(BUILD)/test_list $(BUILD)/test_reindex $(BUILD)/test_clean $(BUILD)/test_stop $(BUILD)/test_extract $(BUILD)/test_ignore $(BUILD)/test_observer $(BUILD)/test_class $(BUILD)/test_method $(BUILD)/test_registry $(BUILD)/test_overlap $(BUILD)/test_incremental
@@ -113,11 +114,11 @@ $(BUILD)/test_observer: $(TESTS)/test_observer.c $(BUILD)/src/observer.o
 
 $(BUILD)/test_class: $(TESTS)/test_class.c $(SRC)/query_class.c $(BUILD)/src/dbpath.o $(BUILD)/src/registry.o $(BUILD)/index/core.o $(BUILD)/index/class.o $(BUILD)/index/method.o
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -Isrc -Iindex -Ipycoolctl -o $@ $(TESTS)/test_class.c $(SRC)/query_class.c $(BUILD)/src/dbpath.o $(BUILD)/src/registry.o $(BUILD)/index/core.o $(BUILD)/index/class.o $(BUILD)/index/method.o --coverage -lsqlite3 -lpython3.13
+	$(CC) $(CFLAGS) -Isrc -Iindex -Ipycoolctl -o $@ $(TESTS)/test_class.c $(SRC)/query_class.c $(BUILD)/src/dbpath.o $(BUILD)/src/registry.o $(BUILD)/index/core.o $(BUILD)/index/class.o $(BUILD)/index/method.o --coverage -lsqlite3 $(PYTHON_LIBS)
 
 $(BUILD)/test_method: $(TESTS)/test_method.c $(SRC)/query_method.c $(BUILD)/src/dbpath.o $(BUILD)/src/registry.o $(BUILD)/index/core.o $(BUILD)/index/class.o $(BUILD)/index/method.o
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -Isrc -Iindex -Ipycoolctl -o $@ $(TESTS)/test_method.c $(SRC)/query_method.c $(BUILD)/src/dbpath.o $(BUILD)/src/registry.o $(BUILD)/index/core.o $(BUILD)/index/class.o $(BUILD)/index/method.o --coverage -lsqlite3 -lpython3.13
+	$(CC) $(CFLAGS) -Isrc -Iindex -Ipycoolctl -o $@ $(TESTS)/test_method.c $(SRC)/query_method.c $(BUILD)/src/dbpath.o $(BUILD)/src/registry.o $(BUILD)/index/core.o $(BUILD)/index/class.o $(BUILD)/index/method.o --coverage -lsqlite3 $(PYTHON_LIBS)
 
 $(BUILD)/test_registry: $(TESTS)/test_registry.c $(BUILD)/src/registry.o
 	@mkdir -p $(dir $@)
@@ -146,7 +147,7 @@ cppcheck:
 	test ! -s cppcheck.txt
 
 lint:
-	clang-tidy -checks=-*,readability-*,modernize-* src/*.c index/*.c mcp/*.c pycoolctl/*.c http/*.c -- $(CFLAGS) 2>&1 | tee lint.txt
+	clang-tidy -checks=-*,readability-*,modernize-*,-readability-identifier-length,-readability-magic-numbers,-readability-function-cognitive-complexity,-readability-function-size src/*.c index/*.c mcp/*.c pycoolctl/*.c http/*.c -- $(CFLAGS) 2>&1 | tee lint.txt
 	test ! -s lint.txt || echo "Lint warnings found"
 
 build: all

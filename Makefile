@@ -1,6 +1,8 @@
 CC ?= gcc
-CFLAGS ?= -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -Isrc -Iindex -Ipycoolctl
-LDFLAGS ?= -lpython3.13 -lsqlite3
+PYTHON_CFLAGS := $(shell python3-config --cflags 2>/dev/null || echo "-I/usr/include/python3.13")
+PYTHON_LIBS := $(shell python3-config --libs --embed 2>/dev/null || echo "-lpython3.13 -ldl -lm")
+CFLAGS ?= -std=c11 -O2 -Wall -Wextra $(PYTHON_CFLAGS) -Isrc -Iindex -Ipycoolctl
+LDFLAGS ?= $(PYTHON_LIBS) -lsqlite3
 
 SRC := src
 INDEX := index

@@ -1,5 +1,8 @@
 # pycoolmcp
 
+[![CI](https://github.com/cstffx/pycoolmcp/actions/workflows/ci.yml/badge.svg)](https://github.com/cstffx/pycoolmcp/actions/workflows/ci.yml)
+[![Release](https://github.com/cstffx/pycoolmcp/actions/workflows/release.yml/badge.svg)](https://github.com/cstffx/pycoolmcp/actions/workflows/release.yml)
+
 Index Python source trees and query symbols fast.
 
 ## Features

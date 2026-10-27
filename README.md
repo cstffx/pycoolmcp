@@ -15,26 +15,7 @@ Index Python source trees and query symbols fast.
 - **CLI tool**: `pycoolctl` for command-line queries
 - **SQLite backend**: Persistent, queryable index database
 
-## Build
+## Documentation
 
-```bash
-make
-```
-
-## Usage
-
-**Index a Python project:**
-```bash
-./build/pycool /path/to/python/project /path/to/index.db
-```
-
-**Query the index:**
-```bash
-./build/bin/pycoolctl class ClassName --db /path/to/index.db
-./build/bin/pycoolctl method ClassName methodName --db /path/to/index.db
-```
-
-**MCP server:**
-```bash
-./build/pycoolmcp
-```
+- **[Build](docs/build.md)** - Installation requirements and build instructions
+- **[Usage](docs/usage.md)** - Complete command reference and examples

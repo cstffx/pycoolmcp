@@ -44,3 +44,7 @@ pycoolmcp
 *.changes
 debian/*.substvars
 cppcheck.txt
+lint.txt
+
+# Local project instructions
+CLAUDE.md

@@ -143,6 +143,10 @@ cppcheck:
 	cppcheck --enable=all --inconclusive --inline-suppr --quiet --suppress=missingInclude --suppress=missingIncludeSystem --suppress=checkLevelNormal --suppress=checkersReport --suppress=normalCheckLevelMaxBranches --suppress=unmatchedSuppression src/ index/ mcp/ pycoolctl/ http/ 2>&1 | tee cppcheck.txt
 	test ! -s cppcheck.txt
 
+lint:
+	clang-tidy -checks=-*,readability-*,modernize-* src/*.c index/*.c mcp/*.c pycoolctl/*.c http/*.c -- $(CFLAGS) 2>&1 | tee lint.txt
+	test ! -s lint.txt || echo "Lint warnings found"
+
 build: all
 
 # Deep analysis targets (optional)

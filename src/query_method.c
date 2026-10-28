@@ -133,41 +133,80 @@ static int resolve_method_pid(const char *pidstr, MethodArgs *args)
 	return 0;
 }
 
+static int process_flag_argument(const char *flag, const char *nextarg, int has_next, int *i, MethodArgs *args)
+{
+	if (strcmp(flag, "--db") == 0 && has_next) {
+		args->dbpath = nextarg;
+		(*i)++;
+		return 1;
+	}
+	if (strcmp(flag, "--pid") == 0 && has_next && !args->dbpath) {
+		int rc = resolve_method_pid(nextarg, args);
+		if (rc != 0) { return -1;
+		}
+		(*i)++;
+		return 1;
+	}
+	if (strcmp(flag, "--pid") == 0 && has_next) {
+		(*i)++;
+		return 1;
+	}
+	if (strcmp(flag, "--file") == 0 && has_next) {
+		args->file = nextarg;
+		(*i)++;
+		return 1;
+	}
+	if (strcmp(flag, "--json") == 0) {
+		args->json_mode = 1;
+		return 1;
+	}
+	if (strcmp(flag, "--body") == 0) {
+		args->body_mode = 1;
+		return 1;
+	}
+	if (strcmp(flag, "--lines") == 0 && has_next) {
+		args->lines = nextarg;
+		(*i)++;
+		return 1;
+	}
+	if (strcmp(flag, "--max-lines") == 0 && has_next) {
+		args->max_lines = atoi(nextarg);
+		(*i)++;
+		return 1;
+	}
+	if (strcmp(flag, "--limit") == 0 && has_next) {
+		args->limit = atoi(nextarg);
+		(*i)++;
+		return 1;
+	}
+	if (strcmp(flag, "--offset") == 0 && has_next) {
+		args->offset = atoi(nextarg);
+		(*i)++;
+		return 1;
+	}
+	return 0;
+}
+
+static void set_positional_args(const char *arg, MethodArgs *args)
+{
+	if (!args->class_name) {
+		args->class_name = arg;
+	} else if (!args->method_name) {
+		args->method_name = arg;
+	}
+}
+
 static int parse_method_args(int argc, char **argv, MethodArgs *args)
 {
 	memset(args, 0, sizeof(*args));
-	args->limit = 0;
-	args->offset = 0;
-	args->max_lines = 0;
 
 	for (int i = 2; i < argc; i++) {
-		if (strcmp(argv[i], "--db") == 0 && i + 1 < argc) {
-			args->dbpath = argv[++i];
-		} else if (strcmp(argv[i], "--pid") == 0 && i + 1 < argc) {
-			if (!args->dbpath) {
-				int rc = resolve_method_pid(argv[++i], args);
-				if (rc != 0) { return rc; }
-			} else {
-				i++;
-			}
-		} else if (strcmp(argv[i], "--file") == 0 && i + 1 < argc) {
-			args->file = argv[++i];
-		} else if (strcmp(argv[i], "--json") == 0) {
-			args->json_mode = 1;
-		} else if (strcmp(argv[i], "--body") == 0) {
-			args->body_mode = 1;
-		} else if (strcmp(argv[i], "--lines") == 0 && i + 1 < argc) {
-			args->lines = argv[++i];
-		} else if (strcmp(argv[i], "--max-lines") == 0 && i + 1 < argc) {
-			args->max_lines = atoi(argv[++i]);
-		} else if (strcmp(argv[i], "--limit") == 0 && i + 1 < argc) {
-			args->limit = atoi(argv[++i]);
-		} else if (strcmp(argv[i], "--offset") == 0 && i + 1 < argc) {
-			args->offset = atoi(argv[++i]);
-		} else if (!args->class_name) {
-			args->class_name = argv[i];
-		} else if (!args->method_name) {
-			args->method_name = argv[i];
+		int has_next = i + 1 < argc;
+		int rc = process_flag_argument(argv[i], has_next ? argv[i + 1] : NULL, has_next, &i, args);
+		if (rc < 0) { return 1;
+		}
+		if (rc == 0) {
+			set_positional_args(argv[i], args);
 		}
 	}
 

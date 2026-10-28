@@ -96,9 +96,9 @@ $(BUILD)/test_stop: $(TESTS)/test_stop.c pycoolctl/stop.c $(BUILD)/src/registry.
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -o $@ $(TESTS)/test_stop.c pycoolctl/stop.c $(BUILD)/src/registry.o $(LDFLAGS)
 
-$(BUILD)/test_extract: $(TESTS)/test_extract.c $(BUILD)/src/extract.o $(BUILD)/src/scan.o $(BUILD)/src/ast.o $(BUILD)/src/traverse.o $(BUILD)/src/ignore.o $(BUILD)/src/registry.o $(BUILD)/src/observer.o $(BUILD)/src/pycool.o $(BUILD)/index/core.o $(BUILD)/index/class.o $(BUILD)/index/method.o
+$(BUILD)/test_extract: $(TESTS)/test_extract.c $(BUILD)/src/extract.o $(BUILD)/src/scan.o $(BUILD)/src/ast.o $(BUILD)/src/traverse.o $(BUILD)/src/ignore.o $(BUILD)/src/registry.o $(BUILD)/src/observer.o $(BUILD)/src/pycool.o $(BUILD)/index/core.o $(BUILD)/index/class.o $(BUILD)/index/method.o $(BUILD)/extract/extract.o $(BUILD)/extract/common.o $(BUILD)/extract/class.o $(BUILD)/extract/method.o $(BUILD)/extract/assign.o
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -Isrc -Iindex -o $@ $(TESTS)/test_extract.c $(BUILD)/src/extract.o $(BUILD)/src/scan.o $(BUILD)/src/ast.o $(BUILD)/src/traverse.o $(BUILD)/src/ignore.o $(BUILD)/src/registry.o $(BUILD)/src/observer.o $(BUILD)/src/pycool.o $(BUILD)/index/core.o $(BUILD)/index/class.o $(BUILD)/index/method.o $(LDFLAGS) -lpthread -ldl -lutil -lm
+	$(CC) $(CFLAGS) -Isrc -Iindex -o $@ $(TESTS)/test_extract.c $(BUILD)/src/extract.o $(BUILD)/src/scan.o $(BUILD)/src/ast.o $(BUILD)/src/traverse.o $(BUILD)/src/ignore.o $(BUILD)/src/registry.o $(BUILD)/src/observer.o $(BUILD)/src/pycool.o $(BUILD)/index/core.o $(BUILD)/index/class.o $(BUILD)/index/method.o $(BUILD)/extract/extract.o $(BUILD)/extract/common.o $(BUILD)/extract/class.o $(BUILD)/extract/method.o $(BUILD)/extract/assign.o $(LDFLAGS) -lpthread -ldl -lutil -lm
 
 $(BUILD)/test_ignore: $(TESTS)/test_ignore.c $(BUILD)/src/ignore.o
 	@mkdir -p $(dir $@)

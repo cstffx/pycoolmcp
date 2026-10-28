@@ -1,0 +1,43 @@
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -c src/ast.c -o build/src/ast.o
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -c src/traverse.c -o build/src/traverse.o
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -c src/scan.c -o build/src/scan.o
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -c src/ignore.c -o build/src/ignore.o
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -c src/observer.c -o build/src/observer.o
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -c src/registry.c -o build/src/registry.o
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -c src/pycool.c -o build/src/pycool.o
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -c src/dbpath.c -o build/src/dbpath.o
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -c src/query_class.c -o build/src/query_class.o
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -c src/query_method.c -o build/src/query_method.o
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -c src/query_list.c -o build/src/query_list.o
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -c src/query_info.c -o build/src/query_info.o
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -c src/query_reindex.c -o build/src/query_reindex.o
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -c src/query_search.c -o build/src/query_search.o
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -c extract/extract.c -o build/extract/extract.o
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -c extract/common.c -o build/extract/common.o
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -c extract/class.c -o build/extract/class.o
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -c extract/method.c -o build/extract/method.o
+extract/method.c: In function ‘extract_method_args’:
+extract/method.c:26:88: warning: unused parameter ‘unparse_fn’ [-Wunused-parameter]
+   26 | static void extract_method_args(PyObject *args_obj, sqlite3_int64 method_id, PyObject *unparse_fn, Ctx *ctx)
+      |                                                                              ~~~~~~~~~~^~~~~~~~~~
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -c extract/assign.c -o build/extract/assign.o
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -c index/core.c -o build/index/core.o
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -c index/class.c -o build/index/class.o
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -c index/method.c -o build/index/method.o
+ar rcs build/libpycool.a build/src/ast.o build/src/traverse.o build/src/scan.o build/src/ignore.o build/src/observer.o build/src/registry.o build/src/pycool.o build/src/dbpath.o build/src/query_class.o build/src/query_method.o build/src/query_list.o build/src/query_info.o build/src/query_reindex.o build/src/query_search.o build/extract/extract.o build/extract/common.o build/extract/class.o build/extract/method.o build/extract/assign.o build/index/core.o build/index/class.o build/index/method.o
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -o build/pycool src/pycool_main.c build/libpycool.a -L/usr/lib/python3.13/config-3.13-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.13 -ldl  -lm  -lpython3.13 -ldl  -lm  -lsqlite3
+src/pycool_main.c: In function ‘main’:
+src/pycool_main.c:21:17: warning: ignoring return value of ‘asprintf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+   21 |                 asprintf(&dir, "%s/.pycool", root);
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/pycool_main.c:23:17: warning: ignoring return value of ‘asprintf’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+   23 |                 asprintf(&dbpath, "%s/index.db", dir);
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -o build/bin/pycoolctl pycoolctl/main.c src/query_list.c src/query_info.c src/query_class.c src/query_method.c src/query_search.c pycoolctl/stop.c pycoolctl/clean.c src/query_reindex.c build/libpycool.a -lsqlite3
+cc -shared -fPIC -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -Wl,-soname,libpycool.so.0 -o build/libpycool.so.0 src/ast.c src/traverse.c src/scan.c src/ignore.c src/observer.c src/registry.c src/pycool.c src/dbpath.c src/query_class.c src/query_method.c src/query_list.c src/query_info.c src/query_reindex.c src/query_search.c extract/extract.c extract/common.c extract/class.c extract/method.c extract/assign.c index/core.c index/class.c index/method.c -L/usr/lib/python3.13/config-3.13-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.13 -ldl  -lm  -lpython3.13 -ldl  -lm  -lsqlite3
+extract/method.c: In function ‘extract_method_args’:
+extract/method.c:26:88: warning: unused parameter ‘unparse_fn’ [-Wunused-parameter]
+   26 | static void extract_method_args(PyObject *args_obj, sqlite3_int64 method_id, PyObject *unparse_fn, Ctx *ctx)
+      |                                                                              ~~~~~~~~~~^~~~~~~~~~
+ln -sf libpycool.so.0 build/libpycool.so
+cc -std=c11 -O2 -Wall -Wextra -I/usr/include/python3.13 -I/usr/include/python3.13  -fno-strict-overflow -Wsign-compare  -DNDEBUG -g -O2 -Wall -Isrc -Iindex -Iextract -Ipycoolctl -I/usr/include/json-c  -I mcp -o build/pycoolmcp mcp/mcp_server.c mcp/tools.c mcp/index_manager.c -Lbuild -lpycool -ljson-c -L/usr/lib/python3.13/config-3.13-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -lpython3.13 -ldl  -lm  -lpython3.13 -ldl  -lm  -lsqlite3 -Wl,-rpath,'$ORIGIN' -Wl,-rpath,'$ORIGIN/../lib'

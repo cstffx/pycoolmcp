@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+// cppcheck-suppress staticFunction
 void extract_assign_targets(PyObject *target, Ctx *ctx, int line)
 {
 	if (!target || !ctx) { return;

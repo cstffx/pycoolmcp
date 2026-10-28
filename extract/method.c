@@ -23,7 +23,7 @@ static void append_to_methods(const char *sig, char **methods, size_t *cap, size
 	*len += strlen(sig);
 }
 
-static void extract_method_args(PyObject *args_obj, sqlite3_int64 method_id, PyObject *unparse_fn, Ctx *ctx)
+static void extract_method_args(PyObject *args_obj, sqlite3_int64 method_id, Ctx *ctx)
 {
 	if (!args_obj || !ctx) { return;
 }
@@ -177,7 +177,7 @@ void extract_method_in_class(PyObject *node, const char *method_name, int class_
 			decorators ? decorators : "", NULL, docstring, &mid);
 
 	if (mid > 0 && args_obj) {
-		extract_method_args(args_obj, mid, unparse_fn, ctx);
+		extract_method_args(args_obj, mid, ctx);
 	}
 
 	free(docstring);

@@ -89,39 +89,55 @@ typedef struct {
 
 static void set_default_mode(ClassArgs *args)
 {
-	if (!args->json_mode && args->info == NULL && !args->full_mode && !args->compact_mode) {
+	if (!args->json_mode && args->info == NULL && !args->full_mode && !args->compact_mode)
 		args->compact_mode = 1;
-	}
+}
+
+static void parse_valued_string_option(const char *opt, int *i, int argc, char **argv, const char **dest)
+{
+	if (strcmp(argv[*i], opt) == 0 && *i + 1 < argc)
+		*dest = argv[++(*i)];
+}
+
+static void parse_int_option(const char *opt, int *i, int argc, char **argv, int *dest)
+{
+	if (strcmp(argv[*i], opt) == 0 && *i + 1 < argc)
+		*dest = atoi(argv[++(*i)]);
+}
+
+static void parse_flag_option(int *dest)
+{
+	*dest = 1;
 }
 
 static void parse_class_args(int argc, char **argv, ClassArgs *args)
 {
 	memset(args, 0, sizeof(*args));
 	for (int i = 2; i < argc; i++) {
-		if (strcmp(argv[i], "--info") == 0 && i + 1 < argc) {
-			args->info = argv[++i];
-		} else if (strcmp(argv[i], "--db") == 0 && i + 1 < argc) {
-			args->dbpath = argv[++i];
-		} else if ((strcmp(argv[i], "--file") == 0 || strcmp(argv[i], "--module") == 0) && i + 1 < argc) {
-			args->file = argv[++i];
+		if (strcmp(argv[i], "--info") == 0) {
+			parse_valued_string_option("--info", &i, argc, argv, &args->info);
+		} else if (strcmp(argv[i], "--db") == 0) {
+			parse_valued_string_option("--db", &i, argc, argv, &args->dbpath);
+		} else if (strcmp(argv[i], "--file") == 0 || strcmp(argv[i], "--module") == 0) {
+			parse_valued_string_option(argv[i], &i, argc, argv, &args->file);
 		} else if (strcmp(argv[i], "--json") == 0) {
-			args->json_mode = 1;
+			parse_flag_option(&args->json_mode);
 		} else if (strcmp(argv[i], "--compact") == 0) {
-			args->compact_mode = 1;
+			parse_flag_option(&args->compact_mode);
 		} else if (strcmp(argv[i], "--full") == 0 || strcmp(argv[i], "--verbose") == 0) {
-			args->full_mode = 1;
+			parse_flag_option(&args->full_mode);
 		} else if (strcmp(argv[i], "--body") == 0) {
-			args->body_mode = 1;
-		} else if (strcmp(argv[i], "--method") == 0 && i + 1 < argc) {
-			args->method = argv[++i];
-		} else if (strcmp(argv[i], "--lines") == 0 && i + 1 < argc) {
-			args->lines = argv[++i];
-		} else if (strcmp(argv[i], "--max-lines") == 0 && i + 1 < argc) {
-			args->max_lines = atoi(argv[++i]);
+			parse_flag_option(&args->body_mode);
+		} else if (strcmp(argv[i], "--method") == 0) {
+			parse_valued_string_option("--method", &i, argc, argv, &args->method);
+		} else if (strcmp(argv[i], "--lines") == 0) {
+			parse_valued_string_option("--lines", &i, argc, argv, &args->lines);
+		} else if (strcmp(argv[i], "--max-lines") == 0) {
+			parse_int_option("--max-lines", &i, argc, argv, &args->max_lines);
 		} else if (strcmp(argv[i], "--refs") == 0) {
-			args->refs_mode = 1;
-		} else if (strcmp(argv[i], "--pid") == 0 && i + 1 < argc) {
-			args->pidstr = argv[++i];
+			parse_flag_option(&args->refs_mode);
+		} else if (strcmp(argv[i], "--pid") == 0) {
+			parse_valued_string_option("--pid", &i, argc, argv, &args->pidstr);
 		} else if (!args->name) {
 			args->name = argv[i];
 		}

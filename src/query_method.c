@@ -41,6 +41,45 @@ static void print_json_str(FILE *out, const char *s)
 	fputc('"', out);
 }
 
+static void build_arg_piece(char *piece, size_t psize, const char *name, const char *kind)
+{
+	if (kind && strcmp(kind, "varargs") == 0) {
+		snprintf(piece, psize, "*%s", name ? name : "");
+	} else if (kind && strcmp(kind, "kwargs") == 0) {
+		snprintf(piece, psize, "**%s", name ? name : "");
+	} else {
+		snprintf(piece, psize, "%s", name ? name : "");
+	}
+}
+
+static void add_annotation(char *piece, size_t psize, const char *ann)
+{
+	if (ann && ann[0]) {
+		char tmp[600];
+		snprintf(tmp, sizeof(tmp), "%s: %s", piece, ann);
+		strcpy(piece, tmp);
+	}
+}
+
+static void add_default_value(char *piece, size_t psize, const char *def)
+{
+	if (def && def[0]) {
+		char tmp[700];
+		snprintf(tmp, sizeof(tmp), "%s=%s", piece, def);
+		strcpy(piece, tmp);
+	}
+}
+
+static void ensure_buf_capacity(char **buf, size_t *cap, const size_t * const len, size_t needed)
+{
+	if (*len + needed >= *cap) {
+		*cap = *cap ? *cap * 2 : 256;
+		while (*len + needed >= *cap) { *cap *= 2; }
+		char *tmpbuf = realloc(*buf, *cap);
+		if (tmpbuf) { *buf = tmpbuf; }
+	}
+}
+
 static char *build_params(sqlite3 *db, sqlite3_int64 method_id)
 {
 	char *buf = NULL;
@@ -48,8 +87,7 @@ static char *build_params(sqlite3 *db, sqlite3_int64 method_id)
 	size_t len = 0;
 	sqlite3_stmt *stmt;
 	const char *sql = "SELECT name, annotation, default_value, kind FROM method_args WHERE method_id=? ORDER BY position;";
-	if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) { return strdup("");
-}
+	if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) { return strdup(""); }
 	sqlite3_bind_int64(stmt, 1, method_id);
 	int first = 1;
 	while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -59,29 +97,11 @@ static char *build_params(sqlite3 *db, sqlite3_int64 method_id)
 		const char *kind = (const char *)sqlite3_column_text(stmt, 3);
 		char piece[512];
 		piece[0] = '\0';
-		if (kind && strcmp(kind, "varargs") == 0) { snprintf(piece, sizeof(piece), "*%s", name ? name : "");
-		} else if (kind && strcmp(kind, "kwargs") == 0) { snprintf(piece, sizeof(piece), "**%s", name ? name : "");
-		} else { snprintf(piece, sizeof(piece), "%s", name ? name : "");
-}
-		if (ann && ann[0]) {
-			char tmp[600];
-			snprintf(tmp, sizeof(tmp), "%s: %s", piece, ann);
-			strcpy(piece, tmp);
-		}
-		if (def && def[0]) {
-			char tmp[700];
-			snprintf(tmp, sizeof(tmp), "%s=%s", piece, def);
-			strcpy(piece, tmp);
-		}
+		build_arg_piece(piece, sizeof(piece), name, kind);
+		add_annotation(piece, sizeof(piece), ann);
+		add_default_value(piece, sizeof(piece), def);
 		size_t plen = strlen(piece);
-		if (len + plen + 4 >= cap) {
-			cap = cap ? cap * 2 : 256;
-			while (len + plen + 4 >= cap) { cap *= 2;
-}
-			char *tmpbuf = realloc(buf, cap);
-			if (tmpbuf) { buf = tmpbuf;
-}
-		}
+		ensure_buf_capacity(&buf, &cap, &len, plen + 4);
 		if (!first) { buf[len++] = ','; buf[len++] = ' '; }
 		first = 0;
 		memcpy(buf + len, piece, plen);
@@ -89,8 +109,7 @@ static char *build_params(sqlite3 *db, sqlite3_int64 method_id)
 		buf[len] = '\0';
 	}
 	sqlite3_finalize(stmt);
-	if (!buf) { buf = strdup("");
-}
+	if (!buf) { buf = strdup(""); }
 	return buf;
 }
 

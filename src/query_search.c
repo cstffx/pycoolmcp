@@ -27,23 +27,31 @@ typedef struct {
 	int offset;
 } SearchArgs;
 
-static int match_text(const char *hay, const char *needle, int regex_mode, regex_t *re)
+static void string_to_lower(char *s)
 {
-	if (!hay) { return 0;
+	for (char *p = s; *p; p++) { *p = (char)tolower((unsigned char)*p); }
 }
-	if (regex_mode) {
-		return regexec(re, hay, 0, NULL, 0) == 0;
-	}
+
+static int case_insensitive_match(const char *hay, const char *needle)
+{
 	char *h = strdup(hay);
 	char *n = strdup(needle);
 	if (!h || !n) { free(h); free(n); return 0; }
-	for (char *p = h; *p; p++) { *p = (char)tolower((unsigned char)*p);
-}
-	for (char *p = n; *p; p++) { *p = (char)tolower((unsigned char)*p);
-}
+	string_to_lower(h);
+	string_to_lower(n);
 	int r = strstr(h, n) != NULL;
-	free(h); free(n);
+	free(h);
+	free(n);
 	return r;
+}
+
+static int match_text(const char *hay, const char *needle, int regex_mode, regex_t *re)
+{
+	if (!hay) { return 0; }
+	if (regex_mode) {
+		return regexec(re, hay, 0, NULL, 0) == 0;
+	}
+	return case_insensitive_match(hay, needle);
 }
 
 static int resolve_search_pid(const char *pidstr, SearchArgs *args)

@@ -82,60 +82,83 @@ static int add_recursive(int fd, const char *root)
 	return 0;
 }
 
-int observer_watch(const char *root, observer_callback cb, void *userdata)
+static char *build_event_path(const char *dir, const struct inotify_event *ev)
 {
-	int fd = inotify_init1(IN_CLOEXEC);
-	if (fd < 0) { return -1;
+	char *full = NULL;
+	if (ev->len > 0) {
+		size_t flen = strlen(dir) + strlen(ev->name) + 2;
+		full = malloc(flen);
+		if (full) { snprintf(full, flen, "%s/%s", dir, ev->name); }
+	} else {
+		full = strdup(dir);
+	}
+	return full;
 }
-	inotify_fd_global = fd;
-	if (add_recursive(fd, root) != 0) { close(fd); return -1; }
-	path_for_wd(-1);
 
+static void process_event(int fd, const struct inotify_event *ev, const char *dir, observer_callback cb, void *userdata)
+{
+	char *full = build_event_path(dir, ev);
+	if (!full) { return; }
+
+	if (cb) { cb(full, ev->mask, userdata); }
+
+	if ((ev->mask & IN_CREATE || ev->mask & IN_MOVED_TO) && (ev->mask & IN_ISDIR)) {
+		add_recursive(fd, full);
+	}
+	if (ev->mask & IN_IGNORED) {
+		remove_watch(ev->wd);
+	}
+	free(full);
+}
+
+static void process_event_buffer(int fd, char *buf, ssize_t len, observer_callback cb, void *userdata)
+{
+	for (char *ptr = buf; ptr < buf + len; ) {
+		const struct inotify_event *ev = (const struct inotify_event *)ptr;
+		const char *dir = path_for_wd(ev->wd);
+		if (dir) {
+			process_event(fd, ev, dir, cb, userdata);
+		}
+		ptr += sizeof(struct inotify_event) + ev->len;
+	}
+}
+
+static void cleanup_watches(void)
+{
+	for (size_t i = 0; i < n_watches; i++) { free(watches[i].path); }
+	free(watches);
+	watches = NULL;
+	n_watches = cap_watches = 0;
+}
+
+static int read_loop(int fd, observer_callback cb, void *userdata)
+{
 	char buf[65536];
 	while (1) {
 		ssize_t len = read(fd, buf, sizeof(buf));
 		if (len < 0) {
-			if (errno == EINTR) { continue;
-}
+			if (errno == EINTR) { continue; }
 			break;
 		}
-		if (len == 0) { break;
-}
-		for (char *ptr = buf; ptr < buf + len; ) {
-			struct inotify_event *ev = (struct inotify_event *)ptr;
-			const char *dir = path_for_wd(ev->wd);
-			if (dir) {
-				char *full = NULL;
-				if (ev->len > 0) {
-					size_t flen = strlen(dir) + strlen(ev->name) + 2;
-					full = malloc(flen);
-					if (full) { snprintf(full, flen, "%s/%s", dir, ev->name);
-}
-				} else {
-					full = strdup(dir);
-				}
-				if (!full) { ptr += sizeof(struct inotify_event) + ev->len; continue; }
-
-				if (cb) { cb(full, ev->mask, userdata);
-}
-
-				if ((ev->mask & IN_CREATE || ev->mask & IN_MOVED_TO) && (ev->mask & IN_ISDIR)) {
-					add_recursive(fd, full);
-				}
-				if (ev->mask & IN_IGNORED) {
-					remove_watch(ev->wd);
-				}
-				free(full);
-			}
-			ptr += sizeof(struct inotify_event) + ev->len;
-		}
+		if (len == 0) { break; }
+		process_event_buffer(fd, buf, len, cb, userdata);
 	}
+	return 0;
+}
+
+int observer_watch(const char *root, observer_callback cb, void *userdata)
+{
+	int fd = inotify_init1(IN_CLOEXEC);
+	if (fd < 0) { return -1; }
+	inotify_fd_global = fd;
+	if (add_recursive(fd, root) != 0) { close(fd); return -1; }
+	path_for_wd(-1);
+
+	read_loop(fd, cb, userdata);
+
 	close(fd);
 	inotify_fd_global = -1;
-	for (size_t i = 0; i < n_watches; i++) { free(watches[i].path);
-}
-	free(watches);
-	watches = NULL; n_watches = cap_watches = 0;
+	cleanup_watches();
 	return 0;
 }
 

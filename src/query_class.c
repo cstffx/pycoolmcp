@@ -158,7 +158,7 @@ static int resolve_db_path(const char *dbpath, const char *pidstr, char **resolv
 		}
 		pid_t target = (pid_t)atoi(pidstr);
 		for (int i = 0; i < n; i++) {
-			if (pids[i] == target) { return 0; }
+			if (pids[i] == target) { *resolved_db = dbpaths[i]; return 0; }
 		}
 		fprintf(out, "pid %s not found\n", pidstr);
 		return 1;
@@ -229,7 +229,7 @@ typedef struct {
 
 static void flush_refs_line(FILE *out, const char *path, LineArray *lines, int total)
 {
-	if (!path[0] || lines->count == 0) { return; }
+	if (!path || !path[0] || lines->count == 0) { return; }
 	fprintf(out, "%s:", path);
 	int i = 0;
 	int first = 1;

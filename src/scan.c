@@ -41,12 +41,23 @@ static char *read_file(const char *path)
 	FILE *f = fopen(path, "rb");
 	if (!f) { return NULL;
 }
+	// Prevent memory exhaustion with large files
 	fseek(f, 0, SEEK_END);
 	long sz = ftell(f);
 	fseek(f, 0, SEEK_SET);
-	if (sz < 0) { fclose(f); return NULL; }
+	if (sz < 0 || sz > 100000000) {  // 100MB limit
+		fclose(f);
+		return NULL;
+	}
+	if (sz < 0) { 
+		fclose(f); 
+		return NULL; 
+	}
 	char *buf = malloc(sz + 1);
-	if (!buf) { fclose(f); return NULL; }
+	if (!buf) { 
+		fclose(f); 
+		return NULL; 
+	}
 	size_t got = fread(buf, 1, sz, f);
 	buf[got] = '\0';
 	fclose(f);
@@ -128,7 +139,13 @@ void scan_dir(const char *root, sqlite3 *db)
 	while ((ent = readdir(d)) != NULL) {
 		if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) { continue;
 }
-		size_t plen = strlen(root) + strlen(ent->d_name) + 2;
+		size_t root_len = strlen(root);
+		size_t ent_len = strlen(ent->d_name);
+		// Prevent integer overflow in path length calculation
+		if (root_len > SIZE_MAX - ent_len - 2) {
+			continue;
+		}
+		size_t plen = root_len + ent_len + 2;
 		char *path = malloc(plen);
 		if (!path) { continue;
 }

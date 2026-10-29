@@ -68,9 +68,9 @@ static char *build_string_list(PyObject *items, const char *sep, PyObject *unpar
 		if (!item_str) { continue;
 }
 
-		size_t add = strlen(item_str) + 2;
-		if (len + strlen(item_str) >= cap) {
-			cap = (len + strlen(item_str) + 1) * 2;
+		size_t add_len = strlen(item_str) + 1;
+		if (len + add_len >= cap) {
+			cap = (len + add_len) * 2;
 			char *tmp = realloc(result, cap);
 			if (!tmp) { free(result); free(item_str); return NULL; }
 			result = tmp;

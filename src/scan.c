@@ -49,10 +49,6 @@ static char *read_file(const char *path)
 		fclose(f);
 		return NULL;
 	}
-	if (sz < 0) { 
-		fclose(f); 
-		return NULL; 
-	}
 	char *buf = malloc(sz + 1);
 	if (!buf) { 
 		fclose(f); 

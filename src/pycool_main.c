@@ -13,14 +13,26 @@ int main(int argc, char **argv)
 		return 2;
 	}
 	const char *root = argv[1];
+	if (!root || !*root) {
+		fprintf(stderr, "error: empty root path\n");
+		return 2;
+	}
 	char *dbpath = NULL;
 	if (argc >= 3) {
 		dbpath = strdup(argv[2]);
+		if (!dbpath) { return 2; }
 	} else {
 		char *dir = NULL;
-		asprintf(&dir, "%s/.pycool", root);
-		mkdir(dir, 0755);
-		asprintf(&dbpath, "%s/index.db", dir);
+		if (asprintf(&dir, "%s/.pycool", root) < 0) { return 2; }
+		if (mkdir(dir, 0755) != 0 && errno != EEXIST) {
+			fprintf(stderr, "error: mkdir %s: %s\n", dir, strerror(errno));
+			free(dir);
+			return 2;
+		}
+		if (asprintf(&dbpath, "%s/index.db", dir) < 0) {
+			free(dir);
+			return 2;
+		}
 		free(dir);
 	}
 	int rc = pycool_run(root, dbpath);

@@ -57,17 +57,22 @@ static char *build_string_list(PyObject *items, const char *sep, PyObject *unpar
 	for (Py_ssize_t i = 0; i < n; i++) {
 		PyObject *item = PyList_GetItem(items, i);
 		char *item_str = get_unparse_str(item, unparse_fn);
-		if (!item_str) { item_str = (char *)PyObject_Str(item);
-}
+		if (!item_str) {
+			PyObject *str_obj = PyObject_Str(item);
+			if (str_obj) {
+				const char *s = PyUnicode_AsUTF8(str_obj);
+				if (s) { item_str = strdup(s); }
+				Py_DECREF(str_obj);
+			}
+		}
 		if (!item_str) { continue;
 }
 
 		size_t add = strlen(item_str) + 2;
-		if (len + add >= cap) {
-			cap = (len + add) * 2;
+		if (len + strlen(item_str) >= cap) {
+			cap = (len + strlen(item_str) + 1) * 2;
 			char *tmp = realloc(result, cap);
-			if (!tmp) { free(result); free(item_str); return NULL;
-}
+			if (!tmp) { free(result); free(item_str); return NULL; }
 			result = tmp;
 		}
 

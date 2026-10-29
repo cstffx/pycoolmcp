@@ -1,6 +1,11 @@
-src/scan.c
-src/query_search.c
-src/query_info.c
-src/query_class.c
-src/pycool_main.c
+extract/assign.c
+extract/class.c
+extract/common.c
+extract/extract.c
+extract/method.c
 index/core.c
+src/pycool_main.c
+src/query_class.c
+src/query_info.c
+src/query_search.c
+src/scan.c

@@ -20,7 +20,11 @@ static void add_target(char ***targets, int *ntarget, int *cap, const char *path
 	if (*ntarget == *cap) {
 		*cap = *cap ? *cap * 2 : 8;
 		char **tmp = realloc(*targets, *cap * sizeof(char *));
-		if (tmp) *targets = tmp;
+		if (tmp) {
+			*targets = tmp;
+		} else {
+			return;
+		}
 	}
 	(*targets)[(*ntarget)++] = (char *)path;
 }
@@ -38,6 +42,10 @@ static int get_all_targets(char ***targets, int *ntarget, int *cap)
 	for (int i = 0; i < n; i++)
 		add_target(targets, ntarget, cap, dbpaths[i]);
 
+	free(roots);
+	free(dbpaths);
+	free(pids);
+
 	return 0;
 }
 
@@ -46,7 +54,7 @@ static const char *resolve_single_target(const char *arg)
 	char *end = NULL;
 	long pid = strtol(arg, &end, 10);
 
-	if (*end != '\0')
+	if (end == NULL || *end != '\0')
 		return arg;
 
 	char **roots;

@@ -21,6 +21,7 @@ int clean_command(int argc, char **argv)
 }
 		usleep(500000);
 		for (int i = 0; i < n; i++) { remove(dbpaths[i]);
+		free(roots); free(dbpaths); free(pids);
 }
 	} else {
 		pid_t pid = atoi(argv[2]);
@@ -28,6 +29,7 @@ int clean_command(int argc, char **argv)
 		usleep(500000);
 		for (int i = 0; i < n; i++) {
 			if (pids[i] == pid) { remove(dbpaths[i]);
+		free(roots); free(dbpaths); free(pids);
 }
 		}
 	}

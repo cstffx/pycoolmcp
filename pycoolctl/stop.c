@@ -22,5 +22,6 @@ int stop_command(int argc, char **argv)
 	} else {
 		kill(atoi(argv[2]), SIGTERM);
 	}
+	free(roots); free(dbpaths); free(pids);
 	return 0;
 }

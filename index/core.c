@@ -255,9 +255,11 @@ int index_remove_file(sqlite3 *db, const char *path)
 
 int index_remove_dir(sqlite3 *db, const char *dir)
 {
-	size_t plen = strlen(dir) + 1;
+	if (!dir || !*dir) { return -1;
+}
+	size_t plen = strlen(dir);
 	char prefix[4096];
-	if (plen + 1 > sizeof(prefix)) { return -1;
+	if (plen + 2 > sizeof(prefix)) { return -1;
 }
 	snprintf(prefix, sizeof(prefix), "%s/", dir);
 

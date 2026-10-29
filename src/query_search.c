@@ -143,16 +143,31 @@ static void build_kind_clause(const SearchArgs *args, char *kindclause, int size
 
 	if (!(want_class && want_function && want_variable)) {
 		snprintf(kindclause, size, " AND s.kind IN (");
-		if (want_class) { strcat(kindclause, "'class'"); }
-		if (want_function) {
-			if (kindclause[strlen(kindclause)-1] != '(') { strcat(kindclause, ","); }
-			strcat(kindclause, "'function'");
+		int len = (int)strlen(kindclause);
+		size_t remaining = (size_t)len < (size_t)(size - 1) ? (size_t)(size - len - 1) : 0;
+		if (want_class && remaining > 0) {
+			strncat(kindclause, "'class'", remaining);
+			len += strlen("'class'");
+			remaining = (size_t)len < (size_t)(size - 1) ? (size_t)(size - len - 1) : 0;
 		}
-		if (want_variable) {
-			if (kindclause[strlen(kindclause)-1] != '(') { strcat(kindclause, ","); }
-			strcat(kindclause, "'variable'");
+		if (want_function && len > 1 && kindclause[len - 1] != '(') {
+			strncat(kindclause, ",", remaining);
 		}
-		strcat(kindclause, ")");
+		remaining = (size_t)len < (size_t)(size - 1) ? (size_t)(size - len - 1) : 0;
+		if (want_function && remaining > 0) {
+			strncat(kindclause, "'function'", remaining);
+			len += strlen("'function'");
+			remaining = (size_t)len < (size_t)(size - 1) ? (size_t)(size - len - 1) : 0;
+		}
+		if (want_variable && len > 1 && kindclause[len - 1] != '(') {
+			strncat(kindclause, ",", remaining);
+		}
+		remaining = (size_t)len < (size_t)(size - 1) ? (size_t)(size - len - 1) : 0;
+		if (want_variable && remaining > 0) {
+			strncat(kindclause, "'variable'", remaining);
+		}
+		remaining = (size_t)len < (size_t)(size - 1) ? (size_t)(size - len - 1) : 0;
+		strncat(kindclause, ")", remaining);
 	} else {
 		kindclause[0] = '\0';
 	}

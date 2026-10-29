@@ -225,7 +225,7 @@ int main(void)
 	/* index_upsert_file failure branch: empty db */
 	{
 		sqlite3 *edb = NULL;
-		sqlite3_open("/tmp/opencode/empty_scan.db", &edb);
+		sqlite3_open("/tmp/opencode/empty_scan.db", &edb); if (edb) sqlite3_close(edb);
 		reindex_file(srcpath, edb);
 		sqlite3_close(edb);
 		unlink("/tmp/opencode/empty_scan.db");

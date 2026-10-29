@@ -90,7 +90,7 @@ int main(void)
 	{
 		char *edb = "/tmp/opencode/emptym.db";
 		unlink(edb);
-		sqlite3 *ed; sqlite3_open(edb, &ed); sqlite3_close(ed);
+		sqlite3 *ed; sqlite3_open(edb, &ed); if (ed) sqlite3_close(ed);
 		char *a[] = {"pycoolctl", "method", "Foo", "--db", edb}; method_command(5, a, out);
 	}
 

@@ -88,7 +88,7 @@ int main(void)
 	{
 		char *edb = "/tmp/opencode/empty.db";
 		unlink(edb);
-		sqlite3 *ed; sqlite3_open(edb, &ed); sqlite3_close(ed);
+		sqlite3 *ed; sqlite3_open(edb, &ed); if (ed) sqlite3_close(ed);
 		char *a[] = {"pycoolctl", "class", "Foo", "--db", edb}; class_command(5, a, out);
 	}
 

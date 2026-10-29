@@ -1,3 +1,6 @@
+mcp/index_manager.c
+mcp/mcp_server.c
+mcp/tools.c
 tests/test_ast.c
 tests/test_class.c
 tests/test_clean.c
@@ -15,7 +18,8 @@ tests/test_pycoolmain.c
 tests/test_registry.c
 tests/test_reindex.c
 tests/test_stop.c
-tests/test_traverse.cextract/assign.c
+tests/test_traverse.c
+extract/assign.c
 extract/class.c
 extract/common.c
 extract/extract.c
